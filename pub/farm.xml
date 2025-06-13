@@ -1,0 +1,131 @@
+<TaskTemplate xmlns="https://robotics.ucmerced.edu/task"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="https://robotics.ucmerced.edu/task ./app/resources/context/wheeled_bots/schema.xsd">
+    <CompositeTaskInformation>
+        <TaskID>PistachioOrchardCornerInspection</TaskID>
+        <TaskDescription>Viewing this farm as a rectangle, take pictures of trees at the four corners of the farm in any order.</TaskDescription>
+    </CompositeTaskInformation>
+    <Preconditions>
+        <Precondition>
+            <Condition>atStartingPoint</Condition>
+        </Precondition>
+    </Preconditions>
+    <AtomicTasks>
+        <AtomicTask>
+            <TaskID>GoToStart</TaskID>
+            <TaskDescription>Move to the starting position</TaskDescription>
+            <Action>
+                <ActionType>moveToLocation</ActionType>
+                <moveToLocation>
+                    <Latitude>37.26644394454138</Latitude>
+                    <Longitude>-120.4203310803755</Longitude>
+                </moveToLocation>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>InspectNorthwestCornerTree</TaskID>
+            <TaskDescription>Take thermal pictures of the northwest corner tree</TaskDescription>
+            <Action>
+                <ActionType>takeThermalPicture</ActionType>
+                <takeThermalPicture>
+                    <numberOfPictures>3</numberOfPictures>
+                </takeThermalPicture>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>GoToNortheastCornerTree</TaskID>
+            <TaskDescription>Move to the northeast corner tree</TaskDescription>
+            <Action>
+                <ActionType>moveToLocation</ActionType>
+                <moveToLocation>
+                    <Latitude>37.26644392937983</Latitude>
+                    <Longitude>-120.4201826654081</Longitude>
+                </moveToLocation>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>InspectNortheastCornerTree</TaskID>
+            <TaskDescription>Take thermal pictures of the northeast corner tree</TaskDescription>
+            <Action>
+                <ActionType>takeThermalPicture</ActionType>
+                <takeThermalPicture>
+                    <numberOfPictures>3</numberOfPictures>
+                </takeThermalPicture>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>GoToSouthwestCornerTree</TaskID>
+            <TaskDescription>Move to the southwest corner tree</TaskDescription>
+            <Action>
+                <ActionType>moveToLocation</ActionType>
+                <moveToLocation>
+                    <Latitude>37.26629098853629</Latitude>
+                    <Longitude>-120.4203303959279</Longitude>
+                </moveToLocation>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>InspectSouthwestCornerTree</TaskID>
+            <TaskDescription>Take thermal pictures of the southwest corner tree</TaskDescription>
+            <Action>
+                <ActionType>takeThermalPicture</ActionType>
+                <takeThermalPicture>
+                    <numberOfPictures>3</numberOfPictures>
+                </takeThermalPicture>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>GoToSoutheastCornerTree</TaskID>
+            <TaskDescription>Move to the southeast corner tree</TaskDescription>
+            <Action>
+                <ActionType>moveToLocation</ActionType>
+                <moveToLocation>
+                    <Latitude>37.26629569261521</Latitude>
+                    <Longitude>-120.4201831510803</Longitude>
+                </moveToLocation>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>InspectSoutheastCornerTree</TaskID>
+            <TaskDescription>Take thermal pictures of the southeast corner tree</TaskDescription>
+            <Action>
+                <ActionType>takeThermalPicture</ActionType>
+                <takeThermalPicture>
+                    <numberOfPictures>3</numberOfPictures>
+                </takeThermalPicture>
+            </Action>
+        </AtomicTask>
+        <AtomicTask>
+            <TaskID>GoToEnd</TaskID>
+            <TaskDescription>Return to the end position</TaskDescription>
+            <Action>
+                <ActionType>moveToLocation</ActionType>
+                <moveToLocation>
+                    <Latitude>37.26644394454138</Latitude>
+                    <Longitude>-120.4203310803755</Longitude>
+                </moveToLocation>
+            </Action>
+        </AtomicTask>
+    </AtomicTasks>
+    <ActionSequence>
+        <Sequence>
+            <TaskID>GoToStart</TaskID>
+            <TaskID>InspectNorthwestCornerTree</TaskID>
+            <TaskID>GoToNortheastCornerTree</TaskID>
+            <TaskID>InspectNortheastCornerTree</TaskID>
+            <TaskID>GoToSouthwestCornerTree</TaskID>
+            <TaskID>InspectSouthwestCornerTree</TaskID>
+            <TaskID>GoToSoutheastCornerTree</TaskID>
+            <TaskID>InspectSoutheastCornerTree</TaskID>
+            <TaskID>GoToEnd</TaskID>
+        </Sequence>
+    </ActionSequence>
+    <Outcome>
+        <State>atEndPoint</State>
+    </Outcome>
+    <Exits>
+        <Exit>
+            <Type>nominal</Type>
+        </Exit>
+    </Exits>
+</TaskTemplate>

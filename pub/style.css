@@ -1,0 +1,50 @@
+body {
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 1rem;
+}
+
+canvas {
+    border: 1px solid #999;
+    display: block;
+    margin: 0 auto;
+}
+
+#speakBtn {
+    display: block;
+    margin: 0 auto 1rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+#loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(2px);
+    visibility: hidden;
+    z-index: 9999;
+}
+
+#loading.show {
+    visibility: visible;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 6px solid #ccc;
+    border-top-color: #0066cc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
