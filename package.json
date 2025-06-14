@@ -1,0 +1,18 @@
+{
+  "name": "mpui",
+  "private": true,
+  "workspaces": [
+    "app",
+    "server"
+  ],
+  "scripts": {
+    "dev:app": "npm run start --workspace=app",
+    "dev:server": "npm run dev --workspace=server",
+    "dev": "concurrently -r \"npm run dev:app\" \"npm run dev:server\""
+  },
+  "license": "MIT",
+  "author": "Thomas Morford",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

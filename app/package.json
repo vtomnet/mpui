@@ -1,0 +1,35 @@
+{
+  "name": "mpui",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomasm6m6/mpui.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/thomasm6m6/mpui/issues"
+  },
+  "homepage": "https://github.com/thomasm6m6/mpui#readme",
+  "description": "",
+  "devDependencies": {
+    "@babel/core": "^7.27.4",
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
+  },
+  "dependencies": {
+    "expo": "~53.0.11",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "0.79.3"
+  },
+  "private": "true"
+}
