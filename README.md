@@ -1,6 +1,6 @@
 # MPUI
 
-This is the repo for Mission Planner UI, a web server and mobile app complementary to [](https://github.com/ucmercedrobotics/gpt-mission-planner/).
+This is the repo for Mission Planner UI, a web server and mobile app complementary to https://github.com/ucmercedrobotics/gpt-mission-planner.
 
 ## Running
 
