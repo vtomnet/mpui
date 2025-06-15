@@ -1,5 +1,8 @@
 /app/.expo
-/server/.env
+/app/ios
+/app/android
+
+**/.env
 
 **/node_modules
 **/package-lock.json

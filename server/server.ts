@@ -24,6 +24,7 @@ async function query(input: string) {
     model: 'gpt-4.1-nano',
     input: input
   });
+  console.log(response);
   return response.output_text;
 }
 
