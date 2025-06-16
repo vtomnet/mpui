@@ -1,18 +1,25 @@
 {
   "name": "mpui",
   "private": true,
-  "workspaces": [
-    "app",
-    "server"
-  ],
+  "type": "module",
+  "main": "index.html",
   "scripts": {
-    "dev:app": "npm run start --workspace=app",
-    "dev:server": "npm run dev --workspace=server",
-    "dev": "concurrently -r \"npm run dev:app\" \"npm run dev:server\""
+    "build": "vite build"
   },
   "license": "MIT",
   "author": "Thomas Morford",
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "@types/node": "^24.0.3",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vercel/node": "^5.2.2",
+    "@vitejs/plugin-react": "^4.5.2",
+    "typescript": "^5.8.3",
+    "vercel": "^43.2.0",
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }
