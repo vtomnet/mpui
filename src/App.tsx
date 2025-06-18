@@ -6,7 +6,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faStop, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 
-const SERVER = "http://localhost:3000";
+const SERVER = import.meta.env.VITE_SERVER;
 
 export default function App() {
   const [recording, setRecording] = useState<boolean>(false);
@@ -53,6 +53,17 @@ export default function App() {
 
             const data = await res.json();
             setResponse(data.result);
+
+            fetch('http://10.35.20.13:5001/data', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ message: data.result })
+            })
+            .then(res => res.json())
+            .then(data => console.log('response:', data))
+            .catch(err => console.error('error:', err));
           } catch (error) {
             console.error(`Error uploading audio: ${error}`);
           } finally {
@@ -77,20 +88,21 @@ export default function App() {
     e.preventDefault();
     if (!text.trim()) return;
 
+    const theText = text;
+
     setLoading(true);
     setSubmitted(true);
+    setText("");
 
-    console.log(JSON.stringify({ text }));
     const res = await fetch(SERVER + "/api/text", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text: theText }),
     });
 
     const data = await res.json();
     setResponse(data.result);
     setLoading(false);
-    setText("");
   };
 
   const handleTextChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -104,8 +116,8 @@ export default function App() {
           <Spinner variant="primary" size="lg"/>
         ) : (
           submitted ? (
-          <Card className="w-full max-w-xl overflow-auto">
-            <CardContent className="p-4 whitespace-pre-wrap text-sm">
+          <Card className="w-full max-w-xl">
+            <CardContent className="p-4 whitespace-pre-wrap text-sm select-text max-h-[50vh] overflow-y-auto">
               {typeof response === "string" ? response : JSON.stringify(response, null, 2)}
             </CardContent>
           </Card>
@@ -126,8 +138,9 @@ export default function App() {
       {submitted && (
         <div className="w-full p-4 flex justify-end">
           <Button
-            onClick={() => setSubmitted(false)}
+            onClick={handleMicClick}
             className="h-14 w-14 p-0"
+            variant={recording ? "destructive" : "default"}
           >
             <div className="w-full h-full flex items-center justify-center">
               <FontAwesomeIcon icon={recording ? faStop : faMicrophone} size="lg"/>
@@ -143,13 +156,15 @@ export default function App() {
             value={text}
             onChange={handleTextChange}
             placeholder="Type or speak a mission plan"
-            className="text-base h-14 flex-1"
+            className="text-base h-14 flex-1 focus-visible:ring-0 focus-visible:border-input"
           />
-          { text.trim() !== "" && (
-            <Button type="submit" className="h-14 w-14 p-0">
-              <FontAwesomeIcon icon={faArrowUp} size="lg"/>
-            </Button>
-          )}
+          <Button
+            type="submit"
+            disabled={text.trim() === ""}
+            className="h-14 w-14 p-0 disabled:bg-gray-950"
+          >
+            <FontAwesomeIcon icon={faArrowUp} size="lg"/>
+          </Button>
         </form>
       </div>
     </div>

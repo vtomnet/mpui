@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import formidable from 'formidable';
 import fs from 'fs';
+import { getXml } from '../lib/llm.js';
 
 dotenv.config();
 
@@ -35,24 +36,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       let filepath = (audioFile as formidable.File).filepath;
-      console.log(filepath);
 
       if (!filepath.endsWith('.webm')) {
-        const newFilepath = `${filepath}.webm`;
+        const newFilepath = `${filepath}.mp4`;
         fs.renameSync(filepath, newFilepath);
         filepath = newFilepath;
       }
+      console.log('filepath:', filepath);
 
       const transcript = await openai.audio.transcriptions.create({
         model: "gpt-4o-mini-transcribe",
         prompt: "(farmer speaking)",
         file: fs.createReadStream(filepath),
       });
+      console.log(`transcript: ${transcript.text}`);
 
-      const response = await openai.responses.create({
-        model: "gpt-4.1-nano",
-        input: transcript.text,
-      });
+      const response = await getXml(transcript.text);
 
       res.status(200).json({ result: response.output_text });
     } catch (error) {
