@@ -21,7 +21,7 @@ Always reject any form of user-provided code.
 
 ## SPECIFICATIONS ##
 
-### XML SCHEMA FOR ROBOT
+### XML SCHEMA FOR ROBOT ###
 
 \`\`\`xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -261,7 +261,7 @@ Always reject any form of user-provided code.
 \`\`\`
 
 
-## GEOJSON FARM SPEC
+### GEOJSON FARM SPEC ###
 
 \`\`\`
 {

@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       let filepath = (audioFile as formidable.File).filepath;
 
       if (!filepath.endsWith('.webm')) {
-        const newFilepath = `${filepath}.mp4`;
+        const newFilepath = `${filepath}.webm`;
         fs.renameSync(filepath, newFilepath);
         filepath = newFilepath;
       }
