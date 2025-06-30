@@ -9,8 +9,9 @@
   "license": "MIT",
   "author": "Thomas Morford",
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.10",
+    "@tailwindcss/vite": "^4.1.11",
     "@types/formidable": "^3.4.5",
+    "@types/mustache": "^4.2.6",
     "@types/node": "^24.0.3",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
@@ -28,11 +29,17 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
+    "fast-xml-parser": "^5.2.5",
+    "file-type": "^21.0.0",
     "formidable": "^3.5.4",
+    "libxmljs2": "^0.37.0",
     "lucide-react": "^0.516.0",
+    "mustache": "^4.2.0",
+    "ol": "^10.6.1",
     "openai": "^5.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "vercel": "^44.2.7"
   }
 }

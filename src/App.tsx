@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, FormEvent, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Spinner } from "@/components/spinner";
+// import { Card, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/Spinner";
+import PlanPreview, { PlanPreviewActions } from "@/components/PlanPreview";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faStop, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 
@@ -11,19 +12,31 @@ const SERVER = import.meta.env.VITE_SERVER;
 export default function App() {
   const [recording, setRecording] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [response, setResponse] = useState<any>(null);
   const [text, setText] = useState<string>("");
-  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [taskXml, setTaskXml] = useState<string>("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const planPreviewRef = useRef<PlanPreviewActions>(null);
+  const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setInitialCenter([position.coords.longitude, position.coords.latitude]);
+      },
+      (error) => {
+        console.error("Error getting user location:", error);
+        // Fallback to a default location if geolocation fails
+        setInitialCenter([-120.4202, 37.2664]);
+      }
+    );
   }, []);
+
+  const handlePath = async (xml: string) => {
+    console.log(xml);
+    setTaskXml(xml);
+  };
 
   const handleMicClick = async () => {
     if (!recording) {
@@ -38,12 +51,23 @@ export default function App() {
         };
 
         mediaRecorderRef.current.onstop = async () => {
-          setSubmitted(true);
           setLoading(true);
 
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const snapshot = planPreviewRef.current?.takeSnapshot();
+
+          // Note: Safari will send an mp4 and claim it's a webm.
+          // Server corrects for this with mime-type detection.
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           const formData = new FormData();
           formData.append("file", audioBlob, "recording.webm");
+          if (snapshot) {
+            formData.append("image", snapshot.image);
+            formData.append("northWest", JSON.stringify(snapshot.northWest));
+            formData.append("northEast", JSON.stringify(snapshot.northEast));
+            formData.append("southWest", JSON.stringify(snapshot.southWest));
+            formData.append("southEast", JSON.stringify(snapshot.southEast));
+            formData.append("center", JSON.stringify(snapshot.center));
+          }
 
           try {
             const res = await fetch(SERVER + "/api/voice", {
@@ -52,18 +76,8 @@ export default function App() {
             });
 
             const data = await res.json();
-            setResponse(data.result);
-
-            fetch('http://10.35.20.13:5001/data', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ message: data.result })
-            })
-            .then(res => res.json())
-            .then(data => console.log('response:', data))
-            .catch(err => console.error('error:', err));
+            console.log(data.result);
+            handlePath(data.result);
           } catch (error) {
             console.error(`Error uploading audio: ${error}`);
           } finally {
@@ -91,17 +105,32 @@ export default function App() {
     const theText = text;
 
     setLoading(true);
-    setSubmitted(true);
     setText("");
+
+    const snapshot = planPreviewRef.current?.takeSnapshot();
+
+    if (snapshot && snapshot.image) {
+      const newTab = window.open();
+      if (newTab) {
+        newTab.document.body.innerHTML = `<img src="${snapshot.image}" alt="map snapshot" />`;
+      } else {
+        console.error("Failed to open new tab for snapshot debugging.");
+      }
+    }
 
     const res = await fetch(SERVER + "/api/text", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: theText }),
+      body: JSON.stringify({
+        text: theText,
+        schemaName: "clearpath_husky",
+        // geojsonName: "reza20",
+        snapshot: snapshot,
+      }),
     });
 
     const data = await res.json();
-    setResponse(data.result);
+    handlePath(data.result);
     setLoading(false);
   };
 
@@ -110,62 +139,40 @@ export default function App() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-muted overflow-hidden select-none" style={{ height: '100dvh' }}>
-      <div className="flex-grow flex items-center justify-center select-none">
-        { loading ? (
-          <Spinner variant="primary" size="lg"/>
-        ) : (
-          submitted ? (
-          <Card className="w-full max-w-xl">
-            <CardContent className="p-4 whitespace-pre-wrap text-sm select-text max-h-[50vh] overflow-y-auto">
-              {typeof response === "string" ? response : JSON.stringify(response, null, 2)}
-            </CardContent>
-          </Card>
-          ) : (
-          <Button
-            onClick={handleMicClick}
-            className="rounded-full w-40 h-40 select-none"
-            variant={recording ? "destructive" : "default"}
-          >
-            <div className="w-full h-full flex items-center justify-center select-none">
-              <FontAwesomeIcon icon={recording ? faStop : faMicrophone} size="6x" className="size-[10em] select-none"/>
-            </div>
-          </Button>
-          )
-        )}
-      </div>
-
-      {submitted && (
+    <div className="relative w-screen h-screen">
+      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} />
+      <div className="fixed bottom-0 left-0 w-screen z-10">
         <div className="w-full p-4 flex justify-end">
           <Button
             onClick={handleMicClick}
-            className="h-14 w-14 p-0"
+            className="size-18 p-0"
             variant={recording ? "destructive" : "default"}
           >
-            <div className="w-full h-full flex items-center justify-center">
-              <FontAwesomeIcon icon={recording ? faStop : faMicrophone} size="lg"/>
-            </div>
+            <FontAwesomeIcon icon={recording ? faStop : faMicrophone} size="xl"/>
           </Button>
         </div>
-      )}
-
-      <div className="pt-0 px-4 pb-4 w-full">
-        <form onSubmit={handleTextSubmit} className="flex items-center gap-3">
-          <Input
-            type="text"
-            value={text}
-            onChange={handleTextChange}
-            placeholder="Type or speak a mission plan"
-            className="text-base h-14 flex-1 focus-visible:ring-0 focus-visible:border-input"
-          />
-          <Button
-            type="submit"
-            disabled={text.trim() === ""}
-            className="h-14 w-14 p-0 disabled:bg-gray-950"
-          >
-            <FontAwesomeIcon icon={faArrowUp} size="lg"/>
-          </Button>
-        </form>
+        <div className="pt-0 px-4 pb-4 w-full">
+          <form onSubmit={handleTextSubmit} className="flex items-center gap-3">
+            <Input
+              type="text"
+              value={text}
+              onChange={handleTextChange}
+              placeholder="Type or speak a mission plan"
+              className="text-base h-18 flex-1 focus-visible:ring-0 focus-visible:border-input"
+            />
+            <Button
+              type="submit"
+              disabled={text.trim() === "" || loading}
+              className="size-18 p-0 disabled:bg-gray-950"
+            >
+              {loading ? (
+                <Spinner variant="secondary" size="lg"/>
+              ) : (
+              <FontAwesomeIcon icon={faArrowUp} size="xl" />
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

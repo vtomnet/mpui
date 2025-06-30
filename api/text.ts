@@ -7,11 +7,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { text } = req.body;
+    const { text, schemaName, geojsonName, snapshot } = req.body;
 
-    const response = await getXml(text);
+    const response = await getXml(text, schemaName, geojsonName, snapshot);
+    if (response === undefined) {
+      throw new Error('getXml failed');
+    }
 
-    res.status(200).json({ result: response.output_text });
+    res.status(200).json({ result: response });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Something went wrong' });
