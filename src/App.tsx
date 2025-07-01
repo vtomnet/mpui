@@ -155,15 +155,17 @@ export default function App() {
           <form onSubmit={handleTextSubmit} className="flex items-center gap-3">
             <Input
               type="text"
+              name="text"
               value={text}
               onChange={handleTextChange}
               placeholder="Type or speak a mission plan"
-              className="text-base h-18 flex-1 focus-visible:ring-0 focus-visible:border-input"
+              className="text-base h-18 flex-1 focus-visible:ring-0 focus-visible:border-input backdrop-blur-lg border-none placeholder:text-gray-700"
+              style={{ fontSize: "18px" }}
             />
             <Button
               type="submit"
               disabled={text.trim() === "" || loading}
-              className="size-18 p-0 disabled:bg-gray-950"
+              className="size-18 p-0 disabled:bg-gray-950 backdrop-blur-lg"
             >
               {loading ? (
                 <Spinner variant="secondary" size="lg"/>
