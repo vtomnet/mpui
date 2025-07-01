@@ -4,6 +4,7 @@ import View from 'ol/View';
 import { get as getProjection, fromLonLat, toLonLat } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS';
+import XYZ from 'ol/source/XYZ';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Feature from 'ol/Feature';
@@ -114,7 +115,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       const metersPerUnit = projection.getMetersPerUnit();
       if (!metersPerUnit) return null;
 
-      const gridSize = 10; // 10 meters
+      const gridSize = 10; // meters
       const gridSpacing = gridSize / metersPerUnit;
 
       context.beginPath();
@@ -150,12 +151,10 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
     if (!containerRef.current || mapRef.current || !initialCenter) return;
 
     const base = new TileLayer({
-      source: new TileWMS({
-        url: "https://gis.apfo.usda.gov/arcgis/services/NAIP/USDA_CONUS_PRIME/ImageServer/WMSServer",
-        params: { LAYERS: "0", TILED: true },
-        transition: 0,
-        crossOrigin: "anonymous",
-        tileLoadFunction: tileLoadFunction,
+      source: new XYZ({
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        attributions: "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics",
+        maxZoom: 19,
       }),
     });
 
