@@ -9,6 +9,7 @@ import VectorSource from 'ol/source/Vector';
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
+import Tile from 'ol/Tile';
 import { Coordinate } from 'ol/coordinate';
 import { Stroke, Style, Circle as CircleStyle, Fill } from 'ol/style';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
@@ -28,6 +29,33 @@ export interface PlanPreviewActions {
 
 function toRoundedLonLat(coords: [number, number]): [number, number] {
   return toLonLat(coords).map(c => Math.round(c * 1000) / 1000) as [number, number];
+}
+
+const maxRetries = 3;
+
+function tileLoadFunction(tile: Tile, src: string) {
+  const image = tile.getImage() as HTMLImageElement;
+  let retries = 0;
+
+  const loadTile = () => {
+    image.src = src;
+
+    image.onerror = () => {
+      console.warn(`Failed to load tile on ${retries} try`);
+      if (retries < maxRetries) {
+        retries++;
+        setTimeout(() => loadTile, 500 * retries);
+      } else {
+        console.warn(`Tile failed after ${retries} retries`);
+      }
+    };
+
+    image.onload = () => {
+      image.onerror = null;
+    };
+  };
+
+  loadTile();
 }
 
 const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null }>(({ xml, initialCenter }, ref) => {
@@ -126,7 +154,8 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
         url: "https://gis.apfo.usda.gov/arcgis/services/NAIP/USDA_CONUS_PRIME/ImageServer/WMSServer",
         params: { LAYERS: "0", TILED: true },
         transition: 0,
-        crossOrigin: "anonymous"
+        crossOrigin: "anonymous",
+        tileLoadFunction: tileLoadFunction,
       }),
     });
 
