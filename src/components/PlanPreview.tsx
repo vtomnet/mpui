@@ -228,6 +228,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
           const highlyVisibleFeatures = [];
           const mapExtent = view.calculateExtent(map.getSize());
+          const mapExtentArea = getExtentArea(mapExtent);
 
           for (const feature of features) {
             const geom = feature.getGeometry();
@@ -239,9 +240,11 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
             const intersectionExtent = getIntersection(mapExtent, featureExtent);
             const intersectionArea = getExtentArea(intersectionExtent);
-            const percentageInView = intersectionArea / featureExtentArea;
 
-            if (percentageInView >= 0.8) {
+            const percentageOfFeatureInView = intersectionArea / featureExtentArea;
+            const percentageOfViewportCovered = mapExtentArea > 0 ? intersectionArea / mapExtentArea : 0;
+
+            if (percentageOfFeatureInView >= 0.8 || percentageOfViewportCovered >= 0.8) {
               highlyVisibleFeatures.push(feature);
             }
           }
