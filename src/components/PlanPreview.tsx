@@ -251,6 +251,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             regionOutlineSource.addFeature(highlyVisibleFeatures[0]);
           } else if (highlyVisibleFeatures.length > 1) {
             setWarningMessage('Ambiguous region. Please zoom in.');
+            regionOutlineSource.addFeatures(highlyVisibleFeatures);
           } else {
             setWarningMessage('No cropland data is available for this area.');
           }
