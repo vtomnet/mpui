@@ -149,7 +149,6 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
   }));
 
   const graph = useMemo(() => xml ? parseTaskPlan(xml) : undefined, [xml]);
-  console.log("graph:", graph);
 
   // initialize map once
   // 'The final argument passed to useEffect changed size between renders. The order and size of this array must remain constant. Previous: [] Incoming: []'
@@ -323,7 +322,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       <div ref={containerRef} className="w-full h-full" />
       {showWarning && (
         <div className="absolute top-4 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm">
-          No cropland data available for this area.
+          No cropland data is available for this area.
         </div>
       )}
     </div>

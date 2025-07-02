@@ -176,6 +176,7 @@ export default function App() {
             <Input
               type="text"
               name="text"
+              autoComplete="off"
               value={text}
               onChange={handleTextChange}
               placeholder="Type or speak a mission plan"
