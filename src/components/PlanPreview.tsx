@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useMemo, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import { get as getProjection, fromLonLat, toLonLat } from 'ol/proj';
@@ -66,6 +66,8 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
     source: new VectorSource(),
     style: featureStyle,
   }));
+  const [showWarning, setShowWarning] = useState(false);
+  const debounceTimerRef = useRef<number | null>(null);
 
   useImperativeHandle(ref, () => ({
     takeSnapshot: () => {
@@ -158,7 +160,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       }),
     });
 
-    mapRef.current = new Map({
+    const map = new Map({
       target: containerRef.current,
       layers: [base, vectorLayerRef.current],
       view: new View({
@@ -166,9 +168,48 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
         zoom: 19,
       }),
     });
+    mapRef.current = map;
+
+    map.on('moveend', () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = window.setTimeout(async () => {
+        const view = map.getView();
+        const extent = view.calculateExtent(map.getSize());
+        const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
+        url.search = new URLSearchParams({
+          geometry: extent.join(','),
+          geometryType: 'esriGeometryEnvelope',
+          inSR: '102100',
+          spatialRel: 'esriSpatialRelIntersects',
+          outFields: 'OBJECTID',
+          returnGeometry: 'false',
+          resultRecordCount: '1',
+          f: 'json',
+        }).toString();
+
+        try {
+          const res = await fetch(url.toString());
+          if (!res.ok) {
+            console.error('Failed to query ArcGIS for cropland.', res.status, res.statusText);
+            setShowWarning(false);
+            return;
+          }
+          const data = await res.json();
+          setShowWarning(!data.features || data.features.length === 0);
+        } catch (e) {
+          console.error('Failed to query ArcGIS for cropland.', e);
+          setShowWarning(false);
+        }
+      }, 500);
+    });
 
     return () => {
-      mapRef.current?.setTarget(undefined);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      map.setTarget(undefined);
       mapRef.current = null;
     };
   }, [initialCenter]);
@@ -217,7 +258,16 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
     }
   }, [graph]);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full">
+      <div ref={containerRef} className="w-full h-full" />
+      {showWarning && (
+        <div className="absolute top-4 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm">
+          No cropland data available for this area.
+        </div>
+      )}
+    </div>
+  );
 });
 
 export default PlanPreview;
