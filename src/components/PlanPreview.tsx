@@ -14,6 +14,8 @@ import Tile from 'ol/Tile';
 import { Coordinate } from 'ol/coordinate';
 import { Stroke, Style, Circle as CircleStyle, Fill } from 'ol/style';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
+import EsriJSON from 'ol/format/EsriJSON';
+import { getArea as getExtentArea, getIntersection } from 'ol/extent';
 
 export interface Snapshot {
   image: string;
@@ -189,8 +191,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           inSR: '102100',
           spatialRel: 'esriSpatialRelIntersects',
           outFields: 'OBJECTID',
-          returnGeometry: 'false',
-          resultRecordCount: '1',
+          returnGeometry: 'true',
           where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
           f: 'json',
         }).toString();
@@ -203,7 +204,37 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             return;
           }
           const data = await res.json();
-          setShowWarning(!data.features || data.features.length === 0);
+          if (!data.features || data.features.length === 0) {
+            setShowWarning(true);
+            return;
+          }
+
+          const esriJsonFormat = new EsriJSON();
+          const features = esriJsonFormat.readFeatures(data, {
+            featureProjection: map.getView().getProjection(),
+          });
+
+          let foundFarmland = false;
+          const mapExtent = view.calculateExtent(map.getSize());
+
+          for (const feature of features) {
+            const geom = feature.getGeometry();
+            if (!geom) continue;
+
+            const featureExtent = geom.getExtent();
+            const featureExtentArea = getExtentArea(featureExtent);
+            if (featureExtentArea === 0) continue;
+
+            const intersectionExtent = getIntersection(mapExtent, featureExtent);
+            const intersectionArea = getExtentArea(intersectionExtent);
+            const percentageInView = intersectionArea / featureExtentArea;
+
+            if (percentageInView >= 0.8) {
+              foundFarmland = true;
+              break;
+            }
+          }
+          setShowWarning(!foundFarmland);
         } catch (e) {
           console.error('Failed to query ArcGIS for cropland.', e);
           setShowWarning(false);
