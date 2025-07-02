@@ -9,8 +9,6 @@ import { faMicrophone, faStop, faArrowUp, faGear } from '@fortawesome/free-solid
 const SERVER = "http://localhost:3000";
 
 export default function App() {
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [showRegions, setShowRegions] = useState<boolean>(false);
   const [recording, setRecording] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [text, setText] = useState<string>("");
@@ -141,26 +139,7 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} showRegions={showRegions} />
-      <div className="fixed top-4 right-4 z-10">
-        <Button onClick={() => setShowSettings(!showSettings)} className="size-12 p-0 rounded-full">
-          <FontAwesomeIcon icon={faGear} size="xl" />
-        </Button>
-      </div>
-      {showSettings && (
-        <div className="fixed top-20 right-4 z-10 bg-background/80 p-4 rounded-lg shadow-lg backdrop-blur-sm border">
-          <h3 className="font-semibold mb-2">Settings</h3>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="show-regions"
-              checked={showRegions}
-              onChange={(e) => setShowRegions(e.target.checked)}
-            />
-            <label htmlFor="show-regions" className="text-sm">Show farm regions</label>
-          </div>
-        </div>
-      )}
+      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} />
       <div className="fixed bottom-0 left-0 w-screen z-10">
         <div className="w-full p-4 flex justify-end">
           <Button

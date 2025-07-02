@@ -3,8 +3,6 @@ import Map from 'ol/Map';
 import View from 'ol/View';
 import { get as getProjection, fromLonLat, toLonLat } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
-import TileWMS from 'ol/source/TileWMS';
-import TileArcGISRest from 'ol/source/TileArcGISRest';
 import XYZ from 'ol/source/XYZ';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -62,14 +60,22 @@ function tileLoadFunction(tile: Tile, src: string) {
   loadTile();
 }
 
-const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null, showRegions: boolean }>(({ xml, initialCenter, showRegions }, ref) => {
+const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null }>(({ xml, initialCenter }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const vectorLayerRef = useRef<VectorLayer<VectorSource>>(new VectorLayer({
     source: new VectorSource(),
     style: featureStyle,
   }));
-  const regionsLayerRef = useRef<TileLayer<any> | null>(null);
+  const regionOutlineLayerRef = useRef<VectorLayer<VectorSource>>(new VectorLayer({
+    source: new VectorSource(),
+    style: new Style({
+      stroke: new Stroke({
+        color: 'rgba(255, 255, 0, 0.7)',
+        width: 3,
+      }),
+    }),
+  }));
   const [showWarning, setShowWarning] = useState(false);
   const debounceTimerRef = useRef<number | null>(null);
 
@@ -163,24 +169,9 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       }),
     });
 
-    const regionsLayer = new TileLayer({
-      source: new TileArcGISRest({
-        url: 'https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer',
-        params: {
-          'LAYERS': 'show:0',
-          'F': 'image',
-          'FORMAT': 'PNG32',
-          'TRANSPARENT': 'true',
-          'layerDefs': `{"0": "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')"}`
-        }
-      }),
-      visible: false,
-    });
-    regionsLayerRef.current = regionsLayer;
-
     const map = new Map({
       target: containerRef.current,
-      layers: [base, regionsLayer, vectorLayerRef.current],
+      layers: [base, regionOutlineLayerRef.current, vectorLayerRef.current],
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 19,
@@ -190,6 +181,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
     map.on('movestart', () => {
       setShowWarning(false);
+      regionOutlineLayerRef.current.getSource()?.clear();
     });
 
     map.on('moveend', () => {
@@ -220,6 +212,10 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             return;
           }
           const data = await res.json();
+          const regionOutlineSource = regionOutlineLayerRef.current.getSource();
+          if (!regionOutlineSource) return;
+          regionOutlineSource.clear();
+
           if (!data.features || data.features.length === 0) {
             setShowWarning(true);
             return;
@@ -246,6 +242,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             const percentageInView = intersectionArea / featureExtentArea;
 
             if (percentageInView >= 0.8) {
+              regionOutlineSource.addFeature(feature);
               foundFarmland = true;
               break;
             }
@@ -310,12 +307,6 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       });
     }
   }, [graph]);
-
-  useEffect(() => {
-    if (regionsLayerRef.current) {
-      regionsLayerRef.current.setVisible(showRegions);
-    }
-  }, [showRegions]);
 
   return (
     <div className="relative w-full h-full">
