@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, FormEvent, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/Spinner";
 import PlanPreview, { PlanPreviewActions } from "@/components/PlanPreview";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faStop, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 
-const SERVER = import.meta.env.VITE_SERVER;
+const SERVER = "http://localhost:3000";
 
 export default function App() {
   const [recording, setRecording] = useState<boolean>(false);
