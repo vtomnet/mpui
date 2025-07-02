@@ -76,7 +76,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       }),
     }),
   }));
-  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
   const debounceTimerRef = useRef<number | null>(null);
 
   useImperativeHandle(ref, () => ({
@@ -180,7 +180,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
     mapRef.current = map;
 
     map.on('movestart', () => {
-      setShowWarning(false);
+      setWarningMessage('');
       regionOutlineLayerRef.current.getSource()?.clear();
     });
 
@@ -208,7 +208,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           const res = await fetch(url.toString());
           if (!res.ok) {
             console.error('Failed to query ArcGIS for cropland.', res.status, res.statusText);
-            setShowWarning(false);
+            setWarningMessage('');
             return;
           }
           const data = await res.json();
@@ -217,7 +217,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           regionOutlineSource.clear();
 
           if (!data.features || data.features.length === 0) {
-            setShowWarning(true);
+            setWarningMessage('No cropland data is available for this area.');
             return;
           }
 
@@ -226,7 +226,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             featureProjection: map.getView().getProjection(),
           });
 
-          let foundFarmland = false;
+          const highlyVisibleFeatures = [];
           const mapExtent = view.calculateExtent(map.getSize());
 
           for (const feature of features) {
@@ -242,15 +242,21 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             const percentageInView = intersectionArea / featureExtentArea;
 
             if (percentageInView >= 0.8) {
-              regionOutlineSource.addFeature(feature);
-              foundFarmland = true;
-              break;
+              highlyVisibleFeatures.push(feature);
             }
           }
-          setShowWarning(!foundFarmland);
+          
+          if (highlyVisibleFeatures.length === 1) {
+            setWarningMessage('');
+            regionOutlineSource.addFeature(highlyVisibleFeatures[0]);
+          } else if (highlyVisibleFeatures.length > 1) {
+            setWarningMessage('Ambiguous region. Please zoom in.');
+          } else {
+            setWarningMessage('No cropland data is available for this area.');
+          }
         } catch (e) {
           console.error('Failed to query ArcGIS for cropland.', e);
-          setShowWarning(false);
+          setWarningMessage('');
         }
       }, 500);
     });
@@ -311,9 +317,9 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
-      {showWarning && (
+      {warningMessage && (
         <div className="absolute top-4 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm">
-          No cropland data is available for this area.
+          {warningMessage}
         </div>
       )}
     </div>
