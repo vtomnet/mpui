@@ -27,6 +27,7 @@ export interface Snapshot {
 
 export interface PlanPreviewActions {
   takeSnapshot: () => Snapshot | null;
+  panTo: (lonLat: [number, number]) => void;
 }
 
 function toRoundedLonLat(coords: [number, number]): [number, number] {
@@ -80,6 +81,14 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
   const debounceTimerRef = useRef<number | null>(null);
 
   useImperativeHandle(ref, () => ({
+    panTo: (lonLat: [number, number]) => {
+      if (!mapRef.current) return;
+      mapRef.current.getView().animate({
+        center: fromLonLat(lonLat),
+        zoom: 17,
+        duration: 1000,
+      });
+    },
     takeSnapshot: () => {
       if (!mapRef.current) return null;
       const map = mapRef.current;
