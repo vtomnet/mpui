@@ -175,6 +175,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
         clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = window.setTimeout(async () => {
+        console.log("CHECKING FOR POLYGON");
         const view = map.getView();
         const extent = view.calculateExtent(map.getSize());
         const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
