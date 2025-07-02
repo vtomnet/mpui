@@ -181,7 +181,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
     map.on('movestart', () => {
       setWarningMessage('');
-      regionOutlineLayerRef.current.getSource()?.clear();
+      // regionOutlineLayerRef.current.getSource()?.clear();
     });
 
     map.on('moveend', () => {
@@ -245,7 +245,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
               highlyVisibleFeatures.push(feature);
             }
           }
-          
+
           if (highlyVisibleFeatures.length === 1) {
             setWarningMessage('');
             regionOutlineSource.addFeature(highlyVisibleFeatures[0]);
