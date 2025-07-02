@@ -170,6 +170,10 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
     });
     mapRef.current = map;
 
+    map.on('movestart', () => {
+      setShowWarning(false);
+    });
+
     map.on('moveend', () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
