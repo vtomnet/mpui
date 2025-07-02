@@ -244,7 +244,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             const percentageOfFeatureInView = intersectionArea / featureExtentArea;
             const percentageOfViewportCovered = mapExtentArea > 0 ? intersectionArea / mapExtentArea : 0;
 
-            if (percentageOfFeatureInView >= 0.8 || percentageOfViewportCovered >= 0.8) {
+            if (percentageOfFeatureInView >= 0.5 || percentageOfViewportCovered >= 0.3) {
               highlyVisibleFeatures.push(feature);
             }
           }
