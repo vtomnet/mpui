@@ -187,6 +187,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           outFields: 'OBJECTID',
           returnGeometry: 'false',
           resultRecordCount: '1',
+          where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
           f: 'json',
         }).toString();
 
