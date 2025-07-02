@@ -4,6 +4,7 @@ import View from 'ol/View';
 import { get as getProjection, fromLonLat, toLonLat } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS';
+import TileArcGISRest from 'ol/source/TileArcGISRest';
 import XYZ from 'ol/source/XYZ';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -61,13 +62,14 @@ function tileLoadFunction(tile: Tile, src: string) {
   loadTile();
 }
 
-const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null }>(({ xml, initialCenter }, ref) => {
+const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null, showRegions: boolean }>(({ xml, initialCenter, showRegions }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const vectorLayerRef = useRef<VectorLayer<VectorSource>>(new VectorLayer({
     source: new VectorSource(),
     style: featureStyle,
   }));
+  const regionsLayerRef = useRef<TileLayer<any> | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const debounceTimerRef = useRef<number | null>(null);
 
@@ -162,9 +164,24 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       }),
     });
 
+    const regionsLayer = new TileLayer({
+      source: new TileArcGISRest({
+        url: 'https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer',
+        params: {
+          'LAYERS': 'show:0',
+          'F': 'image',
+          'FORMAT': 'PNG32',
+          'TRANSPARENT': 'true',
+          'layerDefs': `{"0": "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')"}`
+        }
+      }),
+      visible: false,
+    });
+    regionsLayerRef.current = regionsLayer;
+
     const map = new Map({
       target: containerRef.current,
-      layers: [base, vectorLayerRef.current],
+      layers: [base, regionsLayer, vectorLayerRef.current],
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 19,
@@ -294,6 +311,12 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       });
     }
   }, [graph]);
+
+  useEffect(() => {
+    if (regionsLayerRef.current) {
+      regionsLayerRef.current.setVisible(showRegions);
+    }
+  }, [showRegions]);
 
   return (
     <div className="relative w-full h-full">
