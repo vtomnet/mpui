@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useImperativeHandle, forwardRef, useState } from 'react';
-import Map from 'ol/Map';
+import { useEffect, useMemo, useRef, useImperativeHandle, forwardRef, useState } from 'react';
+import OlMap from 'ol/Map';
 import View from 'ol/View';
 import { get as getProjection, fromLonLat, toLonLat } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
@@ -46,21 +46,13 @@ function toRoundedLonLat(coords: [number, number]): [number, number] {
 
 function getDist(obj1: number[], obj2: number[]) {
   if (obj1.length < 2 || obj2.length < 2) return null;
-  const x1 = obj1[0], y1 = obj1[1], x2 = obj2[0], y2 = obj1[1];
+  const x1 = obj1[0], y1 = obj1[1], x2 = obj2[0], y2 = obj2[1];
   return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
-}
-
-function getScore(feature: FeatureData) {
-  return (
-    1/4 * feature.coverage +
-    1/4 * feature.viewportCoverage +
-    1/2 * (1 - feature.distFromCenter)
-  );
 }
 
 const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null }>(({ xml, initialCenter }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<Map | null>(null);
+  const mapRef = useRef<OlMap | null>(null);
   const vectorLayerRef = useRef<VectorLayer<VectorSource>>(new VectorLayer({
     source: new VectorSource(),
     style: featureStyle,
@@ -177,7 +169,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       }),
     });
 
-    const map = new Map({
+    const map = new OlMap({
       target: containerRef.current,
       layers: [base, regionOutlineLayerRef.current, vectorLayerRef.current],
       view: new View({
@@ -189,147 +181,150 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
     map.on('movestart', () => {
       setWarningMessage('');
-      regionOutlineLayerRef.current.getSource()?.clear();
+      // regionOutlineLayerRef.current.getSource()?.clear();
     });
 
-    map.on('moveend', () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      debounceTimerRef.current = window.setTimeout(async () => {
-        const view = map.getView();
-        const extent = view.calculateExtent(map.getSize());
-        const regionOutlineSource = regionOutlineLayerRef.current.getSource();
-        if (!regionOutlineSource) return;
+    map.on('moveend', async () => {
+      const view = map.getView();
+      const extent = view.calculateExtent(map.getSize());
+      const regionOutlineSource = regionOutlineLayerRef.current.getSource();
+      if (!regionOutlineSource) return;
 
-        const processFeatures = (features: Feature[]) => {
-          regionOutlineSource.clear();
+      const getScore = (feature: FeatureData) => (
+        1/4 * feature.coverage +
+        1/4 * feature.viewportCoverage +
+        1/2 * (1 - feature.distFromCenter)
+      );
 
-          const visibleFeatures = features.filter(f => {
-            const featureExtent = f.getGeometry()?.getExtent();
-            return featureExtent && intersects(featureExtent, extent);
-          });
+      const processFeatures = (features: Feature[]) => {
+        // regionOutlineSource.clear();
 
-          if (visibleFeatures.length === 0) {
-            return false;
-          }
+        const visibleFeatures = features.filter(f => {
+          const featureExtent = f.getGeometry()?.getExtent();
+          return featureExtent && intersects(featureExtent, extent);
+        });
 
-          const mapExtent = view.calculateExtent(map.getSize());
-          const mapCenter = getCenter(mapExtent);
-          const mapExtentArea = getArea(mapExtent);
-          const maxDist = getDist(mapCenter, mapExtent);
-          if (maxDist === null) {
-            setWarningMessage("No cropland data is available for this area.");
-            return false;
-          }
-
-          let bestFeature: ScoredFeature | undefined;
-          for (const feature of visibleFeatures) {
-            const geom = feature.getGeometry();
-            if (!geom) continue;
-
-            const featureExtent = geom.getExtent();
-            const featureExtentArea = getArea(featureExtent);
-            if (featureExtentArea === 0) continue;
-
-            const [minX, minY, maxX, maxY] = [
-              Math.max(mapExtent[0], featureExtent[0]),
-              Math.max(mapExtent[1], featureExtent[1]),
-              Math.min(mapExtent[2], featureExtent[2]),
-              Math.min(mapExtent[3], featureExtent[3]),
-            ];
-            const visibleCenter = [
-              (minX + maxX) / 2,
-              (minY + maxY) / 2,
-            ];
-            const absoluteDistFromCenter = getDist(mapCenter, visibleCenter);
-            if (absoluteDistFromCenter === null) continue;
-            const distFromCenter = absoluteDistFromCenter / maxDist;
-            const intersectionExtent = getIntersection(mapExtent, featureExtent);
-            const intersectionArea = getArea(intersectionExtent);
-            const coverage = intersectionArea / featureExtentArea;
-            const viewportCoverage = intersectionArea / mapExtentArea;
-
-            const featureData = {
-              coverage,
-              viewportCoverage,
-              distFromCenter,
-            };
-            const score = getScore(featureData);
-
-            if (!bestFeature || score > bestFeature.score) {
-              bestFeature = { feature, score };
-            }
-          }
-
-          if (bestFeature) {
-            setWarningMessage("");
-            regionOutlineSource.addFeature(bestFeature.feature);
-            return true;
-          }
+        if (visibleFeatures.length === 0) {
           return false;
-        };
+        }
 
-        if (cachedExtentRef.current && containsExtent(cachedExtentRef.current, extent)) {
-          if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
-            setWarningMessage("No cropland data is available for this area.");
+        const mapExtent = view.calculateExtent(map.getSize());
+        const mapCenter = getCenter(mapExtent);
+        const mapExtentArea = getArea(mapExtent);
+        const maxDist = getDist(mapCenter, mapExtent);
+        if (maxDist === null) {
+          setWarningMessage("No cropland data is available for this area.");
+          return false;
+        }
+
+        let bestFeature: ScoredFeature | undefined;
+        for (const feature of visibleFeatures) {
+          const geom = feature.getGeometry();
+          if (!geom) continue;
+
+          const featureExtent = geom.getExtent();
+          const featureExtentArea = getArea(featureExtent);
+          if (featureExtentArea === 0) continue;
+
+          const [minX, minY, maxX, maxY] = [
+            Math.max(mapExtent[0], featureExtent[0]),
+            Math.max(mapExtent[1], featureExtent[1]),
+            Math.min(mapExtent[2], featureExtent[2]),
+            Math.min(mapExtent[3], featureExtent[3]),
+          ];
+          const visibleCenter = [
+            (minX + maxX) / 2,
+            (minY + maxY) / 2,
+          ];
+          const absoluteDistFromCenter = getDist(mapCenter, visibleCenter);
+          if (absoluteDistFromCenter === null) continue;
+          const distFromCenter = absoluteDistFromCenter / maxDist;
+          const intersectionExtent = getIntersection(mapExtent, featureExtent);
+          const intersectionArea = getArea(intersectionExtent);
+          const coverage = intersectionArea / featureExtentArea;
+          const viewportCoverage = intersectionArea / mapExtentArea;
+
+          const featureData = {
+            coverage,
+            viewportCoverage,
+            distFromCenter,
+          };
+          const score = getScore(featureData);
+
+          if (!bestFeature || score > bestFeature.score) {
+            bestFeature = { feature, score };
           }
+        }
+
+        if (bestFeature) {
+          setWarningMessage("");
+          regionOutlineSource.clear();
+          regionOutlineSource.addFeature(bestFeature.feature);
+          return true;
+        }
+        return false;
+      };
+
+      if (cachedExtentRef.current && containsExtent(cachedExtentRef.current, extent)) {
+        if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
+          setWarningMessage("No cropland data is available for this area.");
+        }
+        return;
+      }
+
+      const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
+      url.search = new URLSearchParams({
+        geometry: extent.join(','),
+        geometryType: 'esriGeometryEnvelope',
+        inSR: '102100',
+        spatialRel: 'esriSpatialRelIntersects',
+        outFields: 'OBJECTID',
+        returnGeometry: 'true',
+        where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
+        f: 'json',
+      }).toString();
+
+      try {
+        console.log("Fetching i15_Crop_Mapping_2023_Provisional...");
+        const res = await fetch(url.toString());
+        if (!res.ok) {
+          console.error('Failed to query ArcGIS for cropland.', res.status, res.statusText);
+          setWarningMessage('');
           return;
         }
+        const data = await res.json();
+        let fetchedSomething = false;
 
-        const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
-        url.search = new URLSearchParams({
-          geometry: extent.join(','),
-          geometryType: 'esriGeometryEnvelope',
-          inSR: '102100',
-          spatialRel: 'esriSpatialRelIntersects',
-          outFields: 'OBJECTID',
-          returnGeometry: 'true',
-          where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
-          f: 'json',
-        }).toString();
-
-        try {
-          const res = await fetch(url.toString());
-          if (!res.ok) {
-            console.error('Failed to query ArcGIS for cropland.', res.status, res.statusText);
-            setWarningMessage('');
-            return;
-          }
-          const data = await res.json();
-          let fetchedSomething = false;
-
-          if (data.features && data.features.length > 0) {
-            fetchedSomething = true;
-            const esriJsonFormat = new EsriJSON();
-            const newFeatures = esriJsonFormat.readFeatures(data, {
-              featureProjection: map.getView().getProjection(),
-            });
-            newFeatures.forEach(f => {
-              const id = f.get('OBJECTID');
-              if (id) {
-                cachedFeaturesRef.current.set(id.toString(), f);
-              }
-            });
-          }
-
-          if (!cachedExtentRef.current) {
-            cachedExtentRef.current = createEmpty();
-          }
-          extend(cachedExtentRef.current, extent);
-
-          if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
-            if (fetchedSomething) {
-              setWarningMessage("No cropland data is available for this area.");
-            } else {
-              setWarningMessage("No data is available for this area. Please look elsewhere.");
+        if (data.features && data.features.length > 0) {
+          fetchedSomething = true;
+          const esriJsonFormat = new EsriJSON();
+          const newFeatures = esriJsonFormat.readFeatures(data, {
+            featureProjection: map.getView().getProjection(),
+          });
+          newFeatures.forEach(f => {
+            const id = f.get('OBJECTID');
+            if (id) {
+              cachedFeaturesRef.current.set(id.toString(), f);
             }
-          }
-        } catch (e) {
-          console.error('Failed to query ArcGIS for cropland.', e);
-          setWarningMessage('');
+          });
         }
-      }, 500);
+
+        if (!cachedExtentRef.current) {
+          cachedExtentRef.current = createEmpty();
+        }
+        extend(cachedExtentRef.current, extent);
+
+        if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
+          if (fetchedSomething) {
+            setWarningMessage("No cropland data is available for this area.");
+          } else {
+            setWarningMessage("This is not the farmland you're looking for.");
+          }
+        }
+      } catch (e) {
+        console.error('Failed to query ArcGIS for cropland.', e);
+        setWarningMessage('');
+      }
     });
 
     return () => {
