@@ -18,6 +18,7 @@ interface NominatimResult {
 export default function App() {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
+  const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
@@ -185,7 +186,7 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} realtimeHighlighting={realtimeHighlighting} />
+      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} realtimeHighlighting={realtimeHighlighting} showCachedPolygons={showCachedPolygons} />
       <div className="fixed top-4 right-4 z-10">
         <Button onClick={() => setShowSettings(true)} variant="secondary" className="size-12 rounded-full p-0">
           <FontAwesomeIcon icon={faGear} size="xl" />
@@ -280,6 +281,16 @@ export default function App() {
                   className="h-5 w-5 rounded"
                   checked={realtimeHighlighting}
                   onChange={(e) => setRealtimeHighlighting(e.target.checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between p-2">
+                <label htmlFor="show-cached-polygons" className="text-sm font-medium">Show cached polygons (debug)</label>
+                <input
+                  type="checkbox"
+                  id="show-cached-polygons"
+                  className="h-5 w-5 rounded"
+                  checked={showCachedPolygons}
+                  onChange={(e) => setShowCachedPolygons(e.target.checked)}
                 />
               </div>
             </div>

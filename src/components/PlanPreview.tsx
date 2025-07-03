@@ -37,8 +37,8 @@ function useRafThrottle() {
   };
 }
 
-const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null, realtimeHighlighting: boolean }>(
-  ({ xml, initialCenter, realtimeHighlighting }, ref) => {
+const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null, realtimeHighlighting: boolean, showCachedPolygons: boolean }>(
+  ({ xml, initialCenter, realtimeHighlighting, showCachedPolygons }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<LibreMap | null>(null);
     const highlightIdRef = useRef<string | null>(null);
@@ -153,11 +153,19 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
             satellite: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics' },
             labels: { type: 'raster', tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles © Esri' },
             farmland: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'OBJECTID' },
+            'cached-polygons-debug': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
             graph: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
           },
           layers: [
             { id: 'satellite', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 22 },
             { id: 'labels', type: 'raster', source: 'labels', minzoom: 0, maxzoom: 22 },
+            {
+              id: 'cached-polygons-debug-outline',
+              type: 'line',
+              source: 'cached-polygons-debug',
+              paint: { 'line-color': 'red', 'line-width': 1 },
+              layout: { visibility: 'none' },
+            },
             {
               id: 'farmland-outline', type: 'line', source: 'farmland',
               paint: { 'line-color': ['case', ['boolean', ['feature-state', 'highlighted'], false], 'rgba(255,255,0,0.7)', 'rgba(0,0,0,0)'], 'line-width': 3 },
@@ -207,7 +215,9 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
                 }
               });
               if(added) {
-                (map.getSource('farmland') as GeoJSONSource)?.setData({ type: 'FeatureCollection', features: Array.from(cachedFeaturesRef.current.values())});
+                const collection = { type: 'FeatureCollection', features: Array.from(cachedFeaturesRef.current.values()) };
+                (map.getSource('farmland') as GeoJSONSource)?.setData(collection);
+                (map.getSource('cached-polygons-debug') as GeoJSONSource)?.setData(collection);
               }
             }
             if (!cachedExtentRef.current) {
@@ -269,6 +279,17 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         return () => { map.off('move', handler); };
       }
     }, [realtimeHighlighting, mapReady]);
+
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !map.isStyleLoaded()) return;
+
+      map.setLayoutProperty(
+        'cached-polygons-debug-outline',
+        'visibility',
+        showCachedPolygons ? 'visible' : 'none'
+      );
+    }, [showCachedPolygons, mapReady]);
 
     useEffect(() => {
       const source = mapRef.current?.getSource('graph') as GeoJSONSource;
