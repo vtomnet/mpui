@@ -9,12 +9,11 @@ import VectorSource from 'ol/source/Vector';
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
-import Tile from 'ol/Tile';
 import { Coordinate } from 'ol/coordinate';
 import { Stroke, Style, Circle as CircleStyle, Fill } from 'ol/style';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
 import EsriJSON from 'ol/format/EsriJSON';
-import { getArea as getExtentArea, getIntersection } from 'ol/extent';
+import { getArea, getCenter, getIntersection } from 'ol/extent';
 
 export interface Snapshot {
   image: string;
@@ -30,35 +29,33 @@ export interface PlanPreviewActions {
   panTo: (lonLat: [number, number]) => void;
 }
 
+type FeatureData = {
+  coverage: number,
+  distFromCenter: number,
+  viewportCoverage: number,
+};
+
+type ScoredFeature = {
+  feature: Feature,
+  score: number,
+};
+
 function toRoundedLonLat(coords: [number, number]): [number, number] {
   return toLonLat(coords).map(c => Math.round(c * 1000) / 1000) as [number, number];
 }
 
-const maxRetries = 3;
+function getDist(obj1: number[], obj2: number[]) {
+  if (obj1.length < 2 || obj2.length < 2) return null;
+  const x1 = obj1[0], y1 = obj1[1], x2 = obj2[0], y2 = obj1[1];
+  return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
+}
 
-function tileLoadFunction(tile: Tile, src: string) {
-  const image = tile.getImage() as HTMLImageElement;
-  let retries = 0;
-
-  const loadTile = () => {
-    image.src = src;
-
-    image.onerror = () => {
-      console.warn(`Failed to load tile on ${retries} try`);
-      if (retries < maxRetries) {
-        retries++;
-        setTimeout(() => loadTile, 500 * retries);
-      } else {
-        console.warn(`Tile failed after ${retries} retries`);
-      }
-    };
-
-    image.onload = () => {
-      image.onerror = null;
-    };
-  };
-
-  loadTile();
+function getScore(feature: FeatureData) {
+  return (
+    1/4 * feature.coverage +
+    1/4 * feature.viewportCoverage +
+    1/2 * (1 - feature.distFromCenter)
+  );
 }
 
 const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: string, initialCenter: [number, number] | null }>(({ xml, initialCenter }, ref) => {
@@ -190,7 +187,6 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
     map.on('movestart', () => {
       setWarningMessage('');
-      // regionOutlineLayerRef.current.getSource()?.clear();
     });
 
     map.on('moveend', () => {
@@ -198,7 +194,6 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
         clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = window.setTimeout(async () => {
-        console.log("CHECKING FOR POLYGON");
         const view = map.getView();
         const extent = view.calculateExtent(map.getSize());
         const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
@@ -226,7 +221,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           regionOutlineSource.clear();
 
           if (!data.features || data.features.length === 0) {
-            setWarningMessage('No cropland data is available for this area.');
+            setWarningMessage('No data is available for this area. Please look elsewhere.');
             return;
           }
 
@@ -235,37 +230,60 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             featureProjection: map.getView().getProjection(),
           });
 
-          const highlyVisibleFeatures = [];
           const mapExtent = view.calculateExtent(map.getSize());
-          const mapExtentArea = getExtentArea(mapExtent);
+          const mapCenter = getCenter(mapExtent);
+          const mapExtentArea = getArea(mapExtent);
+          const maxDist = getDist(mapCenter, mapExtent);
+          if (maxDist === null) {
+            setWarningMessage("No cropland data is available for this area.");
+            return;
+          }
 
+          let bestFeature: ScoredFeature | undefined;
           for (const feature of features) {
             const geom = feature.getGeometry();
             if (!geom) continue;
 
             const featureExtent = geom.getExtent();
-            const featureExtentArea = getExtentArea(featureExtent);
+            const featureExtentArea = getArea(featureExtent);
             if (featureExtentArea === 0) continue;
 
+            const [minX, minY, maxX, maxY] = [
+              Math.max(mapExtent[0], featureExtent[0]),
+              Math.max(mapExtent[1], featureExtent[1]),
+              Math.min(mapExtent[2], featureExtent[2]),
+              Math.min(mapExtent[3], featureExtent[3]),
+            ];
+            const visibleCenter = [
+              (minX + maxX) / 2,
+              (minY + maxY) / 2,
+            ];
+            const absoluteDistFromCenter = getDist(mapCenter, visibleCenter);
+            if (absoluteDistFromCenter === null) continue;
+            const distFromCenter = absoluteDistFromCenter / maxDist;
             const intersectionExtent = getIntersection(mapExtent, featureExtent);
-            const intersectionArea = getExtentArea(intersectionExtent);
+            const intersectionArea = getArea(intersectionExtent);
+            const coverage = intersectionArea / featureExtentArea;
+            const viewportCoverage = intersectionArea / mapExtentArea;
 
-            const percentageOfFeatureInView = intersectionArea / featureExtentArea;
-            const percentageOfViewportCovered = mapExtentArea > 0 ? intersectionArea / mapExtentArea : 0;
+            // all [0,1]
+            const featureData = {
+              coverage,
+              viewportCoverage,
+              distFromCenter,
+            };
+            const score = getScore(featureData);
 
-            if (percentageOfFeatureInView >= 0.5 || percentageOfViewportCovered >= 0.3) {
-              highlyVisibleFeatures.push(feature);
+            if (!bestFeature || score > bestFeature.score) {
+              bestFeature = { feature, score };
             }
           }
 
-          if (highlyVisibleFeatures.length === 1) {
-            setWarningMessage('');
-            regionOutlineSource.addFeature(highlyVisibleFeatures[0]);
-          } else if (highlyVisibleFeatures.length > 1) {
-            setWarningMessage('Ambiguous region. Please zoom in.');
-            regionOutlineSource.addFeatures(highlyVisibleFeatures);
+          if (bestFeature) {
+            setWarningMessage("");
+            regionOutlineSource.addFeature(bestFeature.feature);
           } else {
-            setWarningMessage('No cropland data is available for this area.');
+            setWarningMessage("No cropland data is available for this area.");
           }
         } catch (e) {
           console.error('Failed to query ArcGIS for cropland.', e);
@@ -331,7 +349,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
       {warningMessage && (
-        <div className="absolute top-4 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm">
+        <div className="absolute top-4 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm select-none">
           {warningMessage}
         </div>
       )}
