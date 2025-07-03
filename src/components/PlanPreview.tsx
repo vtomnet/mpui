@@ -85,7 +85,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         source: outlineSourceRef.current,
         style: outlineStyleFn,
         updateWhileInteracting: true,
-        updateWhileAnimating: true,
+        // updateWhileAnimating: true,
       }),
     );
 
