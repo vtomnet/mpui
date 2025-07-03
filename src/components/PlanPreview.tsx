@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useImperativeHandle, forwardRef, useState } from 'react';
-import maplibregl, { Map as MapLibreMap, MapMouseEvent, LngLat, LngLatBounds, GeoJSONSource } from 'maplibre-gl';
-import type { Feature, FeatureCollection, Point, LineString, Polygon } from 'geojson';
+import { Map as LibreMap, MapMouseEvent, LngLat, LngLatBounds, GeoJSONSource } from 'maplibre-gl';
+import type { Feature, Point, LineString, Polygon } from 'geojson';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
 
 export interface Snapshot {
@@ -40,7 +40,7 @@ function useRafThrottle() {
 const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null, realtimeHighlighting: boolean }>(
   ({ xml, initialCenter, realtimeHighlighting }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<MapLibreMap | null>(null);
+    const mapRef = useRef<LibreMap | null>(null);
     const highlightIdRef = useRef<string | null>(null);
     const [warningMessage, setWarningMessage] = useState('');
     const [mapReady, setMapReady] = useState(false);
@@ -145,7 +145,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     useEffect(() => {
       if (!containerRef.current || mapRef.current || !initialCenter) return;
 
-      const map = new MapLibreMap({
+      const map = new LibreMap({
         container: containerRef.current,
         style: {
           version: 8,
@@ -210,10 +210,17 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
                 (map.getSource('farmland') as GeoJSONSource)?.setData({ type: 'FeatureCollection', features: Array.from(cachedFeaturesRef.current.values())});
               }
             }
-            if (!cachedExtentRef.current) cachedExtentRef.current = fetchBounds;
-            else cachedExtentRef.current.extend(fetchBounds);
-          } else console.error('Cropland query failed', res.status, res.statusText);
-        } catch (e) { console.error('Cropland query failed', e); } finally { fetchingRef.current = false; }
+            if (!cachedExtentRef.current) {
+              cachedExtentRef.current = fetchBounds;
+            } else {
+              cachedExtentRef.current.extend(fetchBounds);
+            }
+          } else {
+            console.error('Cropland query failed', res.status, res.statusText);
+          }
+        } catch (e) {
+          console.error('Cropland query failed', e);
+        } finally { fetchingRef.current = false; }
         return added;
       };
 
@@ -241,8 +248,16 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         else { setWarningMessage("These aren't the fields you're looking for."); setHighlightedId(null); }
       };
 
-      map.on('load', () => { setMapReady(true); map.on('moveend', onMoveEnd); map.on('movestart', () => setWarningMessage('')); onMoveEnd(); });
-      return () => { map.remove(); mapRef.current = null; };
+      map.on('load', () => {
+        setMapReady(true);
+        map.on('moveend', onMoveEnd);
+        map.on('movestart', () => setWarningMessage('')); onMoveEnd();
+      });
+
+      return () => {
+        map.remove();
+        mapRef.current = null;
+      };
     }, [initialCenter]);
 
     useEffect(() => {
@@ -250,9 +265,8 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       const handler = onPointerMoveHandlerRef.current;
       if (!map || !handler || !mapReady) return;
       if (realtimeHighlighting) {
-        console.log("REGISTERING...");
         map.on('move', handler);
-        return () => { console.log("???"); map.off('move', handler); };
+        return () => { map.off('move', handler); };
       }
     }, [realtimeHighlighting, mapReady]);
 
