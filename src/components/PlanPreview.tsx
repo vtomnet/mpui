@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useImperativeHandle, forwardRef, useState } from 'react';
-import maplibregl, { Map, MapMouseEvent, LngLat, LngLatBounds, GeoJSONSource } from 'maplibre-gl';
+import maplibregl, { Map as MapLibreMap, MapMouseEvent, LngLat, LngLatBounds, GeoJSONSource } from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point, LineString, Polygon } from 'geojson';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
 
@@ -40,7 +40,7 @@ function useRafThrottle() {
 const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null, realtimeHighlighting: boolean }>(
   ({ xml, initialCenter, realtimeHighlighting }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<Map | null>(null);
+    const mapRef = useRef<MapLibreMap | null>(null);
     const highlightIdRef = useRef<string | null>(null);
     const [warningMessage, setWarningMessage] = useState('');
     const [mapReady, setMapReady] = useState(false);
@@ -62,6 +62,20 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       return bounds;
     };
 
+    const boundsIntersect = (a: LngLatBounds, b: LngLatBounds) => {
+      const aSw = a.getSouthWest();
+      const aNe = a.getNorthEast();
+      const bSw = b.getSouthWest();
+      const bNe = b.getNorthEast();
+
+      return (
+        aSw.lng <= bNe.lng &&
+        aNe.lng >= bSw.lng &&
+        aSw.lat <= bNe.lat &&
+        aNe.lat >= bSw.lat
+      );
+    }
+
     const selectBestFeature = (features: Iterable<Feature<Polygon>>, viewBounds: LngLatBounds): Feature<Polygon> | null => {
       let best: { feature: Feature<Polygon>; score: number } | null = null;
       const mapCenter = viewBounds.getCenter();
@@ -73,7 +87,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
       for (const feature of features) {
         const fBounds = getGeoJSONFeatureBounds(feature);
-        if (!fBounds || !fBounds.intersects(viewBounds)) continue;
+        if (!fBounds || !boundsIntersect(fBounds, viewBounds)) continue;
         const fNe = fBounds.getNorthEast();
         const fSw = fBounds.getSouthWest();
         const featureArea = (fNe.lng - fSw.lng) * (fNe.lat - fSw.lat);
@@ -130,8 +144,8 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
     useEffect(() => {
       if (!containerRef.current || mapRef.current || !initialCenter) return;
-      
-      const map = new Map({
+
+      const map = new MapLibreMap({
         container: containerRef.current,
         style: {
           version: 8,
@@ -150,7 +164,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
             },
             {
               id: 'graph-lines', type: 'line', source: 'graph', filter: ['==', '$type', 'LineString'],
-              paint: { 'line-width': 2, 'line-color': 'black', 'line-dasharray': ['case', ['==', ['get', 'label'], 'true'], ['literal', [10, 10]], ['==', ['get', 'label'], 'false'], ['literal', [2, 12]], ['literal', []]] }
+              // paint: { 'line-width': 2, 'line-color': 'black', 'line-dasharray': ['case', ['==', ['get', 'label'], 'true'], ['literal', [10, 10]], ['==', ['get', 'label'], 'false'], ['literal', [2, 12]], ['literal', []]] } // FIXME
             },
             { id: 'graph-points', type: 'circle', source: 'graph', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 6, 'circle-color': 'black' } }
           ],
@@ -204,7 +218,6 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       };
 
       const onPointerMove = (e: MapMouseEvent) => {
-        if (!e.originalEvent.buttons) return; // not dragging
         throttle(() => {
           const best = selectBestFeature(cachedFeaturesRef.current.values(), map.getBounds());
           setHighlightedId(best?.properties?.OBJECTID ?? null);
@@ -215,11 +228,13 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       const onMoveEnd = async () => {
         const bounds = map.getBounds();
         const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
-        if (cacheMiss) await fetchAndCache(bounds);
-        else {
+        if (cacheMiss) {
+          console.log("CACHE MISS");
+          await fetchAndCache(bounds);
+        } else if (cachedExtentRef.current) {
           const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
           const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
-          if(swDist > neDist*2 || neDist > swDist*2) fetchAndCache(bounds); // very rough "near edge"
+          if (swDist > neDist*2 || neDist > swDist*2) fetchAndCache(bounds); // very rough "near edge"
         }
         const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
         if (best) { setWarningMessage(''); setHighlightedId(best.properties?.OBJECTID ?? null); }
@@ -235,8 +250,9 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       const handler = onPointerMoveHandlerRef.current;
       if (!map || !handler || !mapReady) return;
       if (realtimeHighlighting) {
-        map.on('mousemove', handler);
-        return () => { map.off('mousemove', handler); };
+        console.log("REGISTERING...");
+        map.on('move', handler);
+        return () => { console.log("???"); map.off('move', handler); };
       }
     }, [realtimeHighlighting, mapReady]);
 
@@ -249,7 +265,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       const pointFeatures: Feature<Point>[] = [];
       const hasGeometry = (id: string) => Boolean(graph.nodes[id].geometry);
       const graphBounds = new LngLatBounds();
-      
+
       graph.edges.filter((e) => hasGeometry(e.from) && hasGeometry(e.to)).forEach((e) => {
         const a = graph.nodes[e.from].geometry!;
         const b = graph.nodes[e.to].geometry!;
