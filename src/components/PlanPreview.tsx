@@ -204,6 +204,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
           const res = await fetch(url.toString());
           if (res.ok) {
+            console.log("Fetched crop mapping data");
             const json = await res.json();
             if (json.features?.length) {
               json.features.forEach((f: Feature<Polygon>) => {
@@ -253,6 +254,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
           const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
           if (swDist > neDist*2 || neDist > swDist*2) fetchAndCache(bounds); // very rough "near edge"
         }
+        console.log(cachedFeaturesRef.current.size);
         const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
         if (best) { setWarningMessage(''); setHighlightedId(best.properties?.OBJECTID ?? null); }
         else { setWarningMessage("These aren't the fields you're looking for."); setHighlightedId(null); }
