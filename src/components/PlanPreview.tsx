@@ -36,12 +36,7 @@ export interface Snapshot {
 }
 
 export interface PlanPreviewActions {
-  takeSnapshot: () => Snapshot | null;
   panTo: (lonLat: [number, number]) => void;
-}
-
-function toRoundedLonLat(coords: [number, number]): [number, number] {
-  return toLonLat(coords).map((c) => Math.round(c * 1000) / 1000) as [number, number];
 }
 
 function getDist(a: number[], b: number[]) {
@@ -98,6 +93,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     );
 
     const [warningMessage, setWarningMessage] = useState('');
+    const [mapReady, setMapReady] = useState(false);
 
     const fetchingRef = useRef(false);
     const cachedFeaturesRef = useRef<Map<string, Feature>>(new Map());
@@ -141,7 +137,6 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
     const setHighlightedId = (id: string | null) => {
       if (highlightIdRef.current === id) return; // no change
-      console.log("setHighlightedId");
       highlightIdRef.current = id;
       outlineLayerRef.current.changed();
     };
@@ -149,38 +144,6 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     useImperativeHandle(ref, () => ({
       panTo(lonLat) {
         mapRef.current?.getView().animate({ center: fromLonLat(lonLat), zoom: 17, duration: 1000 });
-      },
-      takeSnapshot() {
-        const map = mapRef.current;
-        if (!map) return null;
-        const view = map.getView();
-        const extent = view.calculateExtent(map.getSize());
-
-        const [width, height] = [extent[2] - extent[0], extent[3] - extent[1]].map(Math.round);
-        const corner = (x: number, y: number) => toRoundedLonLat([x, y]);
-        const [x1, y1, x2, y2] = extent;
-
-        const canvas = map.getViewport().querySelector('canvas');
-        if (!canvas) return null;
-
-        const out = document.createElement('canvas');
-        out.width = canvas.clientWidth;
-        out.height = canvas.clientHeight;
-        const ctx = out.getContext('2d');
-        if (!ctx) return null;
-        const dpr = window.devicePixelRatio || 1;
-        ctx.drawImage(canvas, 0, 0, canvas.clientWidth * dpr, canvas.clientHeight * dpr, 0, 0, out.width, out.height);
-
-        return {
-          image: out.toDataURL('image/png'),
-          northWest: corner(x1, y2),
-          northEast: corner(x2, y2),
-          southWest: corner(x1, y1),
-          southEast: corner(x2, y1),
-          center: toRoundedLonLat(view.getCenter() as [number, number]),
-          width,
-          height,
-        };
       },
     }));
 
@@ -198,9 +161,10 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       const map = new OlMap({
         target: containerRef.current,
         layers: [base, outlineLayerRef.current, graphLayerRef.current],
-        view: new View({ center: fromLonLat(initialCenter), zoom: 19 }),
+        view: new View({ center: fromLonLat(initialCenter), zoom: 18 }),
       });
       mapRef.current = map;
+
 
       const fetchAndCache = async (extentToFetch: Extent): Promise<boolean> => {
         if (fetchingRef.current) return false;
@@ -280,7 +244,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         } else if (
           cachedExtentRef.current &&
           (extent[0] - cachedExtentRef.current[0] < (extent[2] - extent[0]) / 2 ||
-            cachedExtentRef.current[2] - extent[2] < (extent[2] - extent[0]) / 2)
+          cachedExtentRef.current[2] - extent[2] < (extent[2] - extent[0]) / 2)
         ) {
           // near edge, fire‑and‑forget background fetch
           fetchAndCache(extent);
@@ -299,6 +263,8 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       map.on('moveend', onMoveEnd);
       map.on('movestart', () => setWarningMessage(''));
 
+      setMapReady(true);
+
       return () => {
         map.un('moveend', onMoveEnd);
         map.setTarget(undefined);
@@ -315,9 +281,9 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         map.on('pointermove', handler);
         return () => {
           map.un('pointermove', handler);
-        };
-      }
-    }, [realtimeHighlighting]);
+        }
+      };
+    }, [realtimeHighlighting, mapReady]);
 
     useEffect(() => {
       const source = graphLayerRef.current.getSource();

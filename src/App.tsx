@@ -197,7 +197,6 @@ export default function App() {
             <Button
               onClick={() => setShowSearch(true)}
               className="size-18 p-0"
-              variant="secondary"
             >
               <FontAwesomeIcon icon={faSearch} size="xl"/>
             </Button>
