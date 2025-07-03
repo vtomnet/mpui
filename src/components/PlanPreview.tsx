@@ -158,13 +158,19 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         }),
       });
 
+      const labels = new TileLayer({
+        source: new XYZ({
+          url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+          attributions: 'Tiles © Esri'
+        }),
+      });
+
       const map = new OlMap({
         target: containerRef.current,
-        layers: [base, outlineLayerRef.current, graphLayerRef.current],
+        layers: [base, labels, outlineLayerRef.current, graphLayerRef.current],
         view: new View({ center: fromLonLat(initialCenter), zoom: 18 }),
       });
       mapRef.current = map;
-
 
       const fetchAndCache = async (extentToFetch: Extent): Promise<boolean> => {
         if (fetchingRef.current) return false;
