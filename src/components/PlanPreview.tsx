@@ -13,7 +13,7 @@ import { Coordinate } from 'ol/coordinate';
 import { Stroke, Style, Circle as CircleStyle, Fill } from 'ol/style';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
 import EsriJSON from 'ol/format/EsriJSON';
-import { getArea, getCenter, getIntersection } from 'ol/extent';
+import { getArea, getCenter, getIntersection, type Extent, createEmpty, extend, containsExtent, intersects } from 'ol/extent';
 
 export interface Snapshot {
   image: string;
@@ -76,6 +76,8 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
   }));
   const [warningMessage, setWarningMessage] = useState('');
   const debounceTimerRef = useRef<number | null>(null);
+  const cachedFeaturesRef = useRef<Map<string, Feature>>(new Map());
+  const cachedExtentRef = useRef<Extent | null>(null);
 
   useImperativeHandle(ref, () => ({
     panTo: (lonLat: [number, number]) => {
@@ -187,6 +189,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
 
     map.on('movestart', () => {
       setWarningMessage('');
+      regionOutlineLayerRef.current.getSource()?.clear();
     });
 
     map.on('moveend', () => {
@@ -196,39 +199,20 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       debounceTimerRef.current = window.setTimeout(async () => {
         const view = map.getView();
         const extent = view.calculateExtent(map.getSize());
-        const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
-        url.search = new URLSearchParams({
-          geometry: extent.join(','),
-          geometryType: 'esriGeometryEnvelope',
-          inSR: '102100',
-          spatialRel: 'esriSpatialRelIntersects',
-          outFields: 'OBJECTID',
-          returnGeometry: 'true',
-          where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
-          f: 'json',
-        }).toString();
+        const regionOutlineSource = regionOutlineLayerRef.current.getSource();
+        if (!regionOutlineSource) return;
 
-        try {
-          const res = await fetch(url.toString());
-          if (!res.ok) {
-            console.error('Failed to query ArcGIS for cropland.', res.status, res.statusText);
-            setWarningMessage('');
-            return;
-          }
-          const data = await res.json();
-          const regionOutlineSource = regionOutlineLayerRef.current.getSource();
-          if (!regionOutlineSource) return;
+        const processFeatures = (features: Feature[]) => {
           regionOutlineSource.clear();
 
-          if (!data.features || data.features.length === 0) {
-            setWarningMessage('No data is available for this area. Please look elsewhere.');
-            return;
-          }
-
-          const esriJsonFormat = new EsriJSON();
-          const features = esriJsonFormat.readFeatures(data, {
-            featureProjection: map.getView().getProjection(),
+          const visibleFeatures = features.filter(f => {
+            const featureExtent = f.getGeometry()?.getExtent();
+            return featureExtent && intersects(featureExtent, extent);
           });
+
+          if (visibleFeatures.length === 0) {
+            return false;
+          }
 
           const mapExtent = view.calculateExtent(map.getSize());
           const mapCenter = getCenter(mapExtent);
@@ -236,11 +220,11 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           const maxDist = getDist(mapCenter, mapExtent);
           if (maxDist === null) {
             setWarningMessage("No cropland data is available for this area.");
-            return;
+            return false;
           }
 
           let bestFeature: ScoredFeature | undefined;
-          for (const feature of features) {
+          for (const feature of visibleFeatures) {
             const geom = feature.getGeometry();
             if (!geom) continue;
 
@@ -266,7 +250,6 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
             const coverage = intersectionArea / featureExtentArea;
             const viewportCoverage = intersectionArea / mapExtentArea;
 
-            // all [0,1]
             const featureData = {
               coverage,
               viewportCoverage,
@@ -282,8 +265,65 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
           if (bestFeature) {
             setWarningMessage("");
             regionOutlineSource.addFeature(bestFeature.feature);
-          } else {
+            return true;
+          }
+          return false;
+        };
+
+        if (cachedExtentRef.current && containsExtent(cachedExtentRef.current, extent)) {
+          if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
             setWarningMessage("No cropland data is available for this area.");
+          }
+          return;
+        }
+
+        const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
+        url.search = new URLSearchParams({
+          geometry: extent.join(','),
+          geometryType: 'esriGeometryEnvelope',
+          inSR: '102100',
+          spatialRel: 'esriSpatialRelIntersects',
+          outFields: 'OBJECTID',
+          returnGeometry: 'true',
+          where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
+          f: 'json',
+        }).toString();
+
+        try {
+          const res = await fetch(url.toString());
+          if (!res.ok) {
+            console.error('Failed to query ArcGIS for cropland.', res.status, res.statusText);
+            setWarningMessage('');
+            return;
+          }
+          const data = await res.json();
+          let fetchedSomething = false;
+
+          if (data.features && data.features.length > 0) {
+            fetchedSomething = true;
+            const esriJsonFormat = new EsriJSON();
+            const newFeatures = esriJsonFormat.readFeatures(data, {
+              featureProjection: map.getView().getProjection(),
+            });
+            newFeatures.forEach(f => {
+              const id = f.get('OBJECTID');
+              if (id) {
+                cachedFeaturesRef.current.set(id.toString(), f);
+              }
+            });
+          }
+
+          if (!cachedExtentRef.current) {
+            cachedExtentRef.current = createEmpty();
+          }
+          extend(cachedExtentRef.current, extent);
+
+          if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
+            if (fetchedSomething) {
+              setWarningMessage("No cropland data is available for this area.");
+            } else {
+              setWarningMessage("No data is available for this area. Please look elsewhere.");
+            }
           }
         } catch (e) {
           console.error('Failed to query ArcGIS for cropland.', e);
