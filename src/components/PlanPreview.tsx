@@ -210,6 +210,10 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
               json.features.forEach((f: Feature<Polygon>) => {
                 const id = f.properties?.OBJECTID;
                 if (id && !cachedFeaturesRef.current.has(id.toString())) {
+                  if (cachedFeaturesRef.current.size >= 512) {
+                    const oldestKey = cachedFeaturesRef.current.keys().next().value;
+                    cachedFeaturesRef.current.delete(oldestKey);
+                  }
                   f.id = id; // promoteId needs top-level id
                   cachedFeaturesRef.current.set(id.toString(), f);
                   added = true;
@@ -245,19 +249,38 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
       const onMoveEnd = async () => {
         const bounds = map.getBounds();
-        const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
-        if (cacheMiss) {
-          console.log("CACHE MISS");
-          await fetchAndCache(bounds);
-        } else if (cachedExtentRef.current) {
-          const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
-          const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
-          if (swDist > neDist*2 || neDist > swDist*2) fetchAndCache(bounds); // very rough "near edge"
+        const width = bounds.getEast() - bounds.getWest();
+        const ZOOM_OUT_THRESHOLD = 0.5; // degrees longitude
+
+        // Fetching logic
+        if (width <= ZOOM_OUT_THRESHOLD) {
+          const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
+          if (cacheMiss) {
+            console.log("CACHE MISS");
+            await fetchAndCache(bounds); // Await because we need the data now
+          } else if (cachedExtentRef.current) {
+            const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
+            const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
+            // Fire-and-forget pre-fetch
+            if (swDist > neDist * 2 || neDist > swDist * 2) fetchAndCache(bounds);
+          }
         }
+        
+        // Highlighting and message logic
         console.log(cachedFeaturesRef.current.size);
         const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
-        if (best) { setWarningMessage(''); setHighlightedId(best.properties?.OBJECTID ?? null); }
-        else { setWarningMessage("These aren't the fields you're looking for."); setHighlightedId(null); }
+
+        if (best) {
+          setWarningMessage('');
+          setHighlightedId(best.properties?.OBJECTID ?? null);
+        } else {
+          setHighlightedId(null);
+          if (width > ZOOM_OUT_THRESHOLD) {
+            setWarningMessage("Zoom in to see farmland regions");
+          } else {
+            setWarningMessage("These aren't the fields you're looking for.");
+          }
+        }
       };
 
       map.on('load', () => {
