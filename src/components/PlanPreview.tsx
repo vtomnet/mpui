@@ -275,7 +275,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
       const width = extent[2] - extent[0];
       const height = extent[3] - extent[1];
       const center = getCenter(extent);
-      const fetchFactor = 3;
+      const fetchFactor = 6;
       const fetchWidth = width * fetchFactor;
       const fetchHeight = height * fetchFactor;
       const fetchExtent: Extent = [
