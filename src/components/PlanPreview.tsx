@@ -63,8 +63,8 @@ function useRafThrottle() {
   };
 }
 
-const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null }>(
-  ({ xml, initialCenter }, ref) => {
+const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null, realtimeHighlighting: boolean }>(
+  ({ xml, initialCenter, realtimeHighlighting }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<OlMap | null>(null);
 
@@ -104,6 +104,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     const cachedExtentRef = useRef<Extent | null>(null);
 
     const throttle = useRafThrottle();
+    const onPointerMoveHandlerRef = useRef<((evt: MapBrowserEvent<PointerEvent>) => void) | null>(null);
 
     const graph = useMemo(() => (xml ? parseTaskPlan(xml) : undefined), [xml]);
 
@@ -267,6 +268,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
           setHighlightedId(best ? best.get('OBJECTID')?.toString() ?? null : null);
         });
       };
+      onPointerMoveHandlerRef.current = onPointerMove;
 
       const onMoveEnd = async () => {
         const extent = map.getView().calculateExtent(map.getSize());
@@ -294,17 +296,28 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         }
       };
 
-      map.on('pointermove', onPointerMove);
       map.on('moveend', onMoveEnd);
       map.on('movestart', () => setWarningMessage(''));
 
       return () => {
-        map.un('pointermove', onPointerMove);
         map.un('moveend', onMoveEnd);
         map.setTarget(undefined);
         mapRef.current = null;
       };
     }, [initialCenter]);
+
+    useEffect(() => {
+      const map = mapRef.current;
+      const handler = onPointerMoveHandlerRef.current;
+      if (!map || !handler) return;
+
+      if (realtimeHighlighting) {
+        map.on('pointermove', handler);
+        return () => {
+          map.un('pointermove', handler);
+        };
+      }
+    }, [realtimeHighlighting]);
 
     useEffect(() => {
       const source = graphLayerRef.current.getSource();

@@ -16,6 +16,8 @@ interface NominatimResult {
 }
 
 export default function App() {
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
@@ -183,7 +185,12 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} />
+      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} realtimeHighlighting={realtimeHighlighting} />
+      <div className="fixed top-4 right-4 z-10">
+        <Button onClick={() => setShowSettings(true)} variant="secondary" className="size-12 rounded-full p-0">
+          <FontAwesomeIcon icon={faGear} size="xl" />
+        </Button>
+      </div>
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
@@ -252,6 +259,30 @@ export default function App() {
                   {result.display_name}
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 z-20 flex items-center justify-center p-4">
+          <div className="bg-background w-full max-w-2xl h-full max-h-[80vh] rounded-lg p-4 flex flex-col shadow-2xl">
+            <div className="flex justify-between items-center mb-4 pb-4 border-b">
+              <h2 className="text-xl font-bold">Settings</h2>
+              <Button onClick={() => setShowSettings(false)} variant="ghost" className="size-8 p-0">
+                <FontAwesomeIcon icon={faTimes} />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <div className="flex items-center justify-between p-2">
+                <label htmlFor="realtime-rendering" className="text-sm font-medium">Realtime feature highlighting</label>
+                <input
+                  type="checkbox"
+                  id="realtime-rendering"
+                  className="h-5 w-5 rounded"
+                  checked={realtimeHighlighting}
+                  onChange={(e) => setRealtimeHighlighting(e.target.checked)}
+                />
+              </div>
             </div>
           </div>
         </div>
