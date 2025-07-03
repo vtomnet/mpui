@@ -184,9 +184,9 @@ export default function App() {
   return (
     <div className="relative w-screen h-screen">
       <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} />
-      <div className="fixed bottom-0 left-0 w-screen z-10">
+      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 pointer-events-auto">
             <Button
               onClick={() => setShowSearch(true)}
               className="size-18 p-0"
@@ -204,7 +204,7 @@ export default function App() {
           </div>
         </div>
         <div className="pt-0 px-4 pb-4 w-full">
-          <form onSubmit={handleTextSubmit} className="flex items-center gap-3">
+          <form onSubmit={handleTextSubmit} className="flex items-center gap-3 pointer-events-auto">
             <Input
               type="text"
               name="text"
