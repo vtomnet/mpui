@@ -1,48 +1,27 @@
 import { useEffect, useMemo, useRef, useImperativeHandle, forwardRef, useState } from 'react';
-import OlMap, { MapBrowserEvent } from 'ol/Map';
-import View from 'ol/View';
-import { get as getProjection, fromLonLat, toLonLat } from 'ol/proj';
-import TileLayer from 'ol/layer/Tile';
-import XYZ from 'ol/source/XYZ';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import LineString from 'ol/geom/LineString';
-import Point from 'ol/geom/Point';
-import { Coordinate } from 'ol/coordinate';
-import { Stroke, Style, Circle as CircleStyle, Fill } from 'ol/style';
+import maplibregl, { Map, MapMouseEvent, LngLat, LngLatBounds, GeoJSONSource } from 'maplibre-gl';
+import type { Feature, FeatureCollection, Point, LineString, Polygon } from 'geojson';
 import { parseTaskPlan } from '../../lib/taskPlanParser';
-import EsriJSON from 'ol/format/EsriJSON';
-import {
-  getArea,
-  getCenter,
-  getIntersection,
-  type Extent,
-  createEmpty,
-  extend,
-  containsExtent,
-  intersects,
-} from 'ol/extent';
 
 export interface Snapshot {
   image: string;
-  northWest: Coordinate;
-  northEast: Coordinate;
-  southWest: Coordinate;
-  southEast: Coordinate;
-  center: Coordinate;
+  northWest: [number, number];
+  northEast: [number, number];
+  southWest: [number, number];
+  southEast: [number, number];
+  center: [number, number];
   width: number;
   height: number;
 }
 
 export interface PlanPreviewActions {
+  takeSnapshot: () => Snapshot | null;
   panTo: (lonLat: [number, number]) => void;
 }
 
-function getDist(a: number[], b: number[]) {
-  if (a.length < 2 || b.length < 2) return null;
-  const dx = a[0] - b[0];
-  const dy = a[1] - b[1];
+function getDist(a: LngLat, b: LngLat): number {
+  const dx = a.lng - b.lng;
+  const dy = a.lat - b.lat;
   return Math.sqrt(dx * dx + dy * dy);
 }
 
@@ -61,264 +40,231 @@ function useRafThrottle() {
 const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter: [number, number] | null, realtimeHighlighting: boolean }>(
   ({ xml, initialCenter, realtimeHighlighting }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<OlMap | null>(null);
-
-    // The vector layer with all potential outlines.
-    const outlineSourceRef = useRef(new VectorSource());
-    const highlightedStyle = new Style({
-      stroke: new Stroke({ color: 'rgba(255,255,0,0.7)', width: 3 }),
-    });
+    const mapRef = useRef<Map | null>(null);
     const highlightIdRef = useRef<string | null>(null);
-
-    const outlineStyleFn = (feature: Feature) =>
-      String(feature.get("OBJECTID")) === highlightIdRef.current
-        ? highlightedStyle
-        : null;
-
-    const outlineLayerRef = useRef(
-      new VectorLayer({
-        source: outlineSourceRef.current,
-        style: outlineStyleFn,
-        updateWhileInteracting: true,
-        // updateWhileAnimating: true,
-      }),
-    );
-
-    // Layer that holds graph edges + points (static)
-    const graphLayerRef = useRef(
-      new VectorLayer({
-        source: new VectorSource(),
-        style: featureStyle,
-      }),
-    );
-
     const [warningMessage, setWarningMessage] = useState('');
     const [mapReady, setMapReady] = useState(false);
-
     const fetchingRef = useRef(false);
-    const cachedFeaturesRef = useRef<Map<string, Feature>>(new Map());
-    const cachedExtentRef = useRef<Extent | null>(null);
-
+    const cachedFeaturesRef = useRef<Map<string, Feature<Polygon>>>(new Map());
+    const cachedExtentRef = useRef<LngLatBounds | null>(null);
     const throttle = useRafThrottle();
-    const onPointerMoveHandlerRef = useRef<((evt: MapBrowserEvent<PointerEvent>) => void) | null>(null);
-
+    const onPointerMoveHandlerRef = useRef<((e: MapMouseEvent) => void) | null>(null);
     const graph = useMemo(() => (xml ? parseTaskPlan(xml) : undefined), [xml]);
 
-    const selectBestFeature = (features: Iterable<Feature>, viewExtent: Extent): Feature | null => {
-      let best: { feature: Feature; score: number } | null = null;
+    const getGeoJSONFeatureBounds = (feature: Feature): LngLatBounds | null => {
+      if (!feature.geometry || feature.geometry.type !== 'Polygon') return null;
+      const coords = feature.geometry.coordinates[0];
+      if (!coords || coords.length === 0) return null;
+      const bounds = new LngLatBounds(coords[0] as [number, number], coords[0] as [number, number]);
+      for (const coord of coords) {
+        bounds.extend(coord as [number, number]);
+      }
+      return bounds;
+    };
 
-      const mapCenter = getCenter(viewExtent);
-      const mapArea = getArea(viewExtent);
-      const maxDist = getDist(mapCenter, viewExtent);
-      if (maxDist === null) return null;
+    const selectBestFeature = (features: Iterable<Feature<Polygon>>, viewBounds: LngLatBounds): Feature<Polygon> | null => {
+      let best: { feature: Feature<Polygon>; score: number } | null = null;
+      const mapCenter = viewBounds.getCenter();
+      const mapNe = viewBounds.getNorthEast();
+      const mapSw = viewBounds.getSouthWest();
+      const mapArea = (mapNe.lng - mapSw.lng) * (mapNe.lat - mapSw.lat);
+      if (mapArea <= 0) return null;
+      const maxDist = getDist(mapCenter, mapNe);
 
       for (const feature of features) {
-        const geom = feature.getGeometry();
-        if (!geom) continue;
-        const fExtent = geom.getExtent();
-        if (!intersects(fExtent, viewExtent)) continue;
-
-        const intersection = getIntersection(viewExtent, fExtent);
-        const intersectionArea = getArea(intersection);
-        const featureArea = getArea(fExtent);
+        const fBounds = getGeoJSONFeatureBounds(feature);
+        if (!fBounds || !fBounds.intersects(viewBounds)) continue;
+        const fNe = fBounds.getNorthEast();
+        const fSw = fBounds.getSouthWest();
+        const featureArea = (fNe.lng - fSw.lng) * (fNe.lat - fSw.lat);
         if (featureArea === 0) continue;
-
-        const [ix1, iy1, ix2, iy2] = intersection;
-        const visibleCenter = [(ix1 + ix2) / 2, (iy1 + iy2) / 2];
-        const distScore = 1 - (getDist(mapCenter, visibleCenter) ?? 0) / maxDist;
+        const intersection = new LngLatBounds([Math.max(mapSw.lng, fSw.lng), Math.max(mapSw.lat, fSw.lat)], [Math.min(mapNe.lng, fNe.lng), Math.min(mapNe.lat, fNe.lat)]);
+        const iNe = intersection.getNorthEast();
+        const iSw = intersection.getSouthWest();
+        const intersectionArea = (iNe.lng - iSw.lng) * (iNe.lat - iSw.lat);
+        const visibleCenter = intersection.getCenter();
+        const distScore = 1 - getDist(mapCenter, visibleCenter) / maxDist;
         const coverageScore = intersectionArea / featureArea;
         const viewportScore = intersectionArea / mapArea;
-
         const score = 0.25 * coverageScore + 0.25 * viewportScore + 0.5 * distScore;
         if (!best || score > best.score) best = { feature, score };
       }
       return best?.feature ?? null;
     };
 
-    const setHighlightedId = (id: string | null) => {
-      if (highlightIdRef.current === id) return; // no change
-      highlightIdRef.current = id;
-      outlineLayerRef.current.changed();
+    const setHighlightedId = (id: string | number | null) => {
+      const map = mapRef.current;
+      const strId = id?.toString() ?? null;
+      if (!map || !map.isStyleLoaded() || highlightIdRef.current === strId) return;
+
+      if (highlightIdRef.current) {
+        map.setFeatureState({ source: 'farmland', id: highlightIdRef.current }, { highlighted: false });
+      }
+      if (strId) {
+        map.setFeatureState({ source: 'farmland', id: strId }, { highlighted: true });
+      }
+      highlightIdRef.current = strId;
     };
 
     useImperativeHandle(ref, () => ({
       panTo(lonLat) {
-        mapRef.current?.getView().animate({ center: fromLonLat(lonLat), zoom: 17, duration: 1000 });
+        mapRef.current?.flyTo({ center: lonLat, zoom: 17 });
+      },
+      takeSnapshot: () => {
+        const map = mapRef.current;
+        if (!map) return null;
+        const canvas = map.getCanvas();
+        const bounds = map.getBounds();
+        return {
+          image: canvas.toDataURL(),
+          northWest: [bounds.getWest(), bounds.getNorth()],
+          northEast: [bounds.getEast(), bounds.getNorth()],
+          southWest: [bounds.getWest(), bounds.getSouth()],
+          southEast: [bounds.getEast(), bounds.getSouth()],
+          center: [map.getCenter().lng, map.getCenter().lat],
+          width: canvas.width,
+          height: canvas.height,
+        };
       },
     }));
 
     useEffect(() => {
       if (!containerRef.current || mapRef.current || !initialCenter) return;
-
-      const base = new TileLayer({
-        source: new XYZ({
-          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-          attributions: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',
-          maxZoom: 19,
-        }),
-      });
-
-      const labels = new TileLayer({
-        source: new XYZ({
-          url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-          attributions: 'Tiles © Esri'
-        }),
-      });
-
-      const map = new OlMap({
-        target: containerRef.current,
-        layers: [base, labels, outlineLayerRef.current, graphLayerRef.current],
-        view: new View({ center: fromLonLat(initialCenter), zoom: 18 }),
+      
+      const map = new Map({
+        container: containerRef.current,
+        style: {
+          version: 8,
+          sources: {
+            satellite: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics' },
+            labels: { type: 'raster', tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles © Esri' },
+            farmland: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'OBJECTID' },
+            graph: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+          },
+          layers: [
+            { id: 'satellite', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 22 },
+            { id: 'labels', type: 'raster', source: 'labels', minzoom: 0, maxzoom: 22 },
+            {
+              id: 'farmland-outline', type: 'line', source: 'farmland',
+              paint: { 'line-color': ['case', ['boolean', ['feature-state', 'highlighted'], false], 'rgba(255,255,0,0.7)', 'rgba(0,0,0,0)'], 'line-width': 3 },
+            },
+            {
+              id: 'graph-lines', type: 'line', source: 'graph', filter: ['==', '$type', 'LineString'],
+              paint: { 'line-width': 2, 'line-color': 'black', 'line-dasharray': ['case', ['==', ['get', 'label'], 'true'], ['literal', [10, 10]], ['==', ['get', 'label'], 'false'], ['literal', [2, 12]], ['literal', []]] }
+            },
+            { id: 'graph-points', type: 'circle', source: 'graph', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 6, 'circle-color': 'black' } }
+          ],
+        },
+        center: initialCenter, zoom: 18,
       });
       mapRef.current = map;
 
-      const fetchAndCache = async (extentToFetch: Extent): Promise<boolean> => {
+      const fetchAndCache = async (bounds: LngLatBounds): Promise<boolean> => {
         if (fetchingRef.current) return false;
         fetchingRef.current = true;
         let added = false;
-
         try {
-          const [w, h] = [extentToFetch[2] - extentToFetch[0], extentToFetch[3] - extentToFetch[1]];
-          const center = getCenter(extentToFetch);
+          const center = bounds.getCenter();
+          const w = bounds.getEast() - bounds.getWest();
+          const h = bounds.getNorth() - bounds.getSouth();
           const factor = 3;
-          const fetchExtent: Extent = [
-            center[0] - (w * factor) / 2,
-            center[1] - (h * factor) / 2,
-            center[0] + (w * factor) / 2,
-            center[1] + (h * factor) / 2,
-          ];
-
-          const url = new URL(
-            'https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query',
+          const fetchBounds = new LngLatBounds(
+            [center.lng - (w * factor) / 2, center.lat - (h * factor) / 2],
+            [center.lng + (w * factor) / 2, center.lat + (h * factor) / 2],
           );
+
+          const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
           url.search = new URLSearchParams({
-            geometry: fetchExtent.join(','),
-            geometryType: 'esriGeometryEnvelope',
-            inSR: '102100',
-            spatialRel: 'esriSpatialRelIntersects',
-            outFields: 'OBJECTID',
-            returnGeometry: 'true',
-            where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')",
-            f: 'json',
+            geometry: fetchBounds.toArray().flat().join(','), geometryType: 'esriGeometryEnvelope', inSR: '4326', outSR: '4326',
+            spatialRel: 'esriSpatialRelIntersects', outFields: 'OBJECTID', returnGeometry: 'true',
+            where: "SYMB_CLASS NOT IN ('I', 'U', 'UL', 'X')", f: 'geojson',
           }).toString();
 
           const res = await fetch(url.toString());
           if (res.ok) {
             const json = await res.json();
             if (json.features?.length) {
-              const esri = new EsriJSON();
-              const feats = esri.readFeatures(json, { featureProjection: map.getView().getProjection() });
-              feats.forEach((f: Feature) => {
-                const id = f.get('OBJECTID');
+              json.features.forEach((f: Feature<Polygon>) => {
+                const id = f.properties?.OBJECTID;
                 if (id && !cachedFeaturesRef.current.has(id.toString())) {
+                  f.id = id; // promoteId needs top-level id
                   cachedFeaturesRef.current.set(id.toString(), f);
-                  outlineSourceRef.current.addFeature(f); // ⇐ add once, keep forever
                   added = true;
                 }
               });
+              if(added) {
+                (map.getSource('farmland') as GeoJSONSource)?.setData({ type: 'FeatureCollection', features: Array.from(cachedFeaturesRef.current.values())});
+              }
             }
-            if (!cachedExtentRef.current) cachedExtentRef.current = createEmpty();
-            extend(cachedExtentRef.current, fetchExtent);
-          } else {
-            console.error('Cropland query failed', res.status, res.statusText);
-          }
-        } catch (e) {
-          console.error('Cropland query failed', e);
-        } finally {
-          fetchingRef.current = false;
-        }
+            if (!cachedExtentRef.current) cachedExtentRef.current = fetchBounds;
+            else cachedExtentRef.current.extend(fetchBounds);
+          } else console.error('Cropland query failed', res.status, res.statusText);
+        } catch (e) { console.error('Cropland query failed', e); } finally { fetchingRef.current = false; }
         return added;
       };
 
-      const onPointerMove = (evt: MapBrowserEvent<PointerEvent>) => {
-        if (!evt.dragging) return;
+      const onPointerMove = (e: MapMouseEvent) => {
+        if (!e.originalEvent.buttons) return; // not dragging
         throttle(() => {
-          const extent = evt.frameState?.extent ?? map.getView().calculateExtent(map.getSize());
-          const best = selectBestFeature(cachedFeaturesRef.current.values(), extent);
-          setHighlightedId(best ? best.get('OBJECTID')?.toString() ?? null : null);
+          const best = selectBestFeature(cachedFeaturesRef.current.values(), map.getBounds());
+          setHighlightedId(best?.properties?.OBJECTID ?? null);
         });
       };
       onPointerMoveHandlerRef.current = onPointerMove;
 
       const onMoveEnd = async () => {
-        const extent = map.getView().calculateExtent(map.getSize());
-        const cacheMiss = !cachedExtentRef.current || !containsExtent(cachedExtentRef.current, extent);
-
-        if (cacheMiss) {
-          console.log("CACHE MISS");
-          await fetchAndCache(extent);
-        } else if (
-          cachedExtentRef.current &&
-          (extent[0] - cachedExtentRef.current[0] < (extent[2] - extent[0]) / 2 ||
-          cachedExtentRef.current[2] - extent[2] < (extent[2] - extent[0]) / 2)
-        ) {
-          // near edge, fire‑and‑forget background fetch
-          fetchAndCache(extent);
+        const bounds = map.getBounds();
+        const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
+        if (cacheMiss) await fetchAndCache(bounds);
+        else {
+          const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
+          const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
+          if(swDist > neDist*2 || neDist > swDist*2) fetchAndCache(bounds); // very rough "near edge"
         }
-
-        const best = selectBestFeature(cachedFeaturesRef.current.values(), extent);
-        if (best) {
-          setWarningMessage('');
-          setHighlightedId(best.get('OBJECTID')?.toString() ?? null);
-        } else {
-          setWarningMessage("These aren't the fields you're looking for.");
-          setHighlightedId(null);
-        }
+        const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
+        if (best) { setWarningMessage(''); setHighlightedId(best.properties?.OBJECTID ?? null); }
+        else { setWarningMessage("These aren't the fields you're looking for."); setHighlightedId(null); }
       };
 
-      map.on('moveend', onMoveEnd);
-      map.on('movestart', () => setWarningMessage(''));
-
-      setMapReady(true);
-
-      return () => {
-        map.un('moveend', onMoveEnd);
-        map.setTarget(undefined);
-        mapRef.current = null;
-      };
+      map.on('load', () => { setMapReady(true); map.on('moveend', onMoveEnd); map.on('movestart', () => setWarningMessage('')); onMoveEnd(); });
+      return () => { map.remove(); mapRef.current = null; };
     }, [initialCenter]);
 
     useEffect(() => {
       const map = mapRef.current;
       const handler = onPointerMoveHandlerRef.current;
-      if (!map || !handler) return;
-
+      if (!map || !handler || !mapReady) return;
       if (realtimeHighlighting) {
-        map.on('pointermove', handler);
-        return () => {
-          map.un('pointermove', handler);
-        }
-      };
+        map.on('mousemove', handler);
+        return () => { map.off('mousemove', handler); };
+      }
     }, [realtimeHighlighting, mapReady]);
 
     useEffect(() => {
-      const source = graphLayerRef.current.getSource();
+      const source = mapRef.current?.getSource('graph') as GeoJSONSource;
       if (!source) return;
-      source.clear();
-      if (!graph) return;
+      if (!graph) { source.setData({ type: 'FeatureCollection', features: [] }); return; }
 
+      const lineFeatures: Feature<LineString>[] = [];
+      const pointFeatures: Feature<Point>[] = [];
       const hasGeometry = (id: string) => Boolean(graph.nodes[id].geometry);
-
+      const graphBounds = new LngLatBounds();
+      
       graph.edges.filter((e) => hasGeometry(e.from) && hasGeometry(e.to)).forEach((e) => {
         const a = graph.nodes[e.from].geometry!;
         const b = graph.nodes[e.to].geometry!;
-        const line = new Feature({
-          geometry: new LineString([fromLonLat([a.lon, a.lat]), fromLonLat([b.lon, b.lat])]),
-        });
-        line.set('label', e.label);
-        source.addFeature(line);
+        lineFeatures.push({ type: 'Feature', properties: { label: e.label }, geometry: { type: 'LineString', coordinates: [[a.lon, a.lat], [b.lon, b.lat]] } });
       });
 
-      Object.values(graph.nodes)
-        .filter((n) => n.geometry)
-        .forEach((n) => {
-          const pt = new Feature({ geometry: new Point(fromLonLat([n.geometry!.lon, n.geometry!.lat])) });
-          pt.set('marker', true);
-          source.addFeature(pt);
-        });
+      Object.values(graph.nodes).filter((n) => n.geometry).forEach((n) => {
+        const coords: [number, number] = [n.geometry!.lon, n.geometry!.lat];
+        pointFeatures.push({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: coords } });
+        graphBounds.extend(coords);
+      });
 
-      if (source.getFeatures().length && mapRef.current) {
-        mapRef.current.getView().fit(source.getExtent(), { padding: [40, 40, 40, 40], maxZoom: 19 });
+      source.setData({ type: 'FeatureCollection', features: [...lineFeatures, ...pointFeatures] });
+      if (lineFeatures.length > 0 && mapRef.current) {
+        mapRef.current.fitBounds(graphBounds, { padding: 40, maxZoom: 18 });
       }
     }, [graph]);
 
@@ -336,13 +282,3 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 );
 
 export default PlanPreview;
-
-function featureStyle(feature: Feature) {
-  if (feature.get('marker')) {
-    return new Style({ image: new CircleStyle({ radius: 6, fill: new Fill({ color: 'black' }) }) });
-  }
-
-  const label = feature.get('label') as 'unconditional' | 'true' | 'false';
-  const dash = label === 'true' ? [10, 10] : label === 'false' ? [2, 12] : undefined;
-  return new Style({ stroke: new Stroke({ width: 2, lineDash: dash }) });
-}
