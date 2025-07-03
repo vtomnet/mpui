@@ -272,9 +272,22 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
         return;
       }
 
+      const width = extent[2] - extent[0];
+      const height = extent[3] - extent[1];
+      const center = getCenter(extent);
+      const fetchFactor = 3;
+      const fetchWidth = width * fetchFactor;
+      const fetchHeight = height * fetchFactor;
+      const fetchExtent: Extent = [
+        center[0] - fetchWidth / 2,
+        center[1] - fetchHeight / 2,
+        center[0] + fetchWidth / 2,
+        center[1] + fetchHeight / 2,
+      ];
+
       const url = new URL('https://utility.arcgis.com/usrsvcs/servers/5e2c0fc60c8741729b9e6852929445a4/rest/services/Planning/i15_Crop_Mapping_2023_Provisional/MapServer/0/query');
       url.search = new URLSearchParams({
-        geometry: extent.join(','),
+        geometry: fetchExtent.join(','),
         geometryType: 'esriGeometryEnvelope',
         inSR: '102100',
         spatialRel: 'esriSpatialRelIntersects',
@@ -312,7 +325,7 @@ const PlanPreview = forwardRef<{ takeSnapshot: () => Snapshot | null }, { xml: s
         if (!cachedExtentRef.current) {
           cachedExtentRef.current = createEmpty();
         }
-        extend(cachedExtentRef.current, extent);
+        extend(cachedExtentRef.current, fetchExtent);
 
         if (!processFeatures(Array.from(cachedFeaturesRef.current.values()))) {
           if (fetchedSomething) {
