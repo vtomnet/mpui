@@ -106,17 +106,28 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     };
 
     const setHighlightedId = (id: string | number | null) => {
+      const setFeatureState = () => {
+        if (highlightIdRef.current) {
+          map.setFeatureState({ source: "farmland", id: highlightIdRef.current }, { highlighted: false});
+        }
+        if (strId) {
+          map.setFeatureState({ source: "farmland", id: strId }, { highlighted: true });
+        }
+        highlightIdRef.current = strId;
+      }
       const map = mapRef.current;
       const strId = id?.toString() ?? null;
-      if (!map || !map.isStyleLoaded() || highlightIdRef.current === strId) return;
-
-      if (highlightIdRef.current) {
-        map.setFeatureState({ source: 'farmland', id: highlightIdRef.current }, { highlighted: false });
+      if (!map || highlightIdRef.current === strId) return;
+      if (map.isStyleLoaded()) {
+        setFeatureState();
+      } else {
+        const interval = setInterval(() => {
+          if (map.isStyleLoaded()) {
+            setFeatureState();
+            clearInterval(interval);
+          }
+        }, 50);
       }
-      if (strId) {
-        map.setFeatureState({ source: 'farmland', id: strId }, { highlighted: true });
-      }
-      highlightIdRef.current = strId;
     };
 
     useImperativeHandle(ref, () => ({
@@ -242,22 +253,32 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
       const onMoveEnd = async () => {
         const bounds = map.getBounds();
+        console.log("onMoveEnd", cachedExtentRef.current, bounds);
         const width = bounds.getEast() - bounds.getWest();
         const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
 
-        const cacheMiss = !cachedExtentRef.current || !(cachedExtentRef.current.contains(bounds.getSouthWest()) && cachedExtentRef.current.contains(bounds.getNorthEast()));
-        if (cacheMiss) {
-          console.log("CACHE MISS");
-          await fetchAndCache(bounds); // Await because we need the data now
-        } else if (cachedExtentRef.current) {
-          const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
-          const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
-          // Fire-and-forget pre-fetch
-          if (swDist > neDist * 2 || neDist > swDist * 2) fetchAndCache(bounds);
-        }
-
         // Fetching logic
         if (width <= ZOOM_OUT_THRESHOLD) {
+          let cacheMiss = true;
+          if (cachedExtentRef.current?.contains(bounds.getCenter())) {
+            for (const feature of cachedFeaturesRef.current.values()) {
+              const fBounds = getGeoJSONFeatureBounds(feature);
+              if (fBounds && boundsIntersect(fBounds, bounds)) {
+                cacheMiss = false;
+                break;
+              }
+            }
+          }
+          if (cacheMiss) {
+            console.log("CACHE MISS");
+            await fetchAndCache(bounds); // Await because we need the data now
+          } else if (cachedExtentRef.current) {
+            const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
+            const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
+            // Fire-and-forget pre-fetch
+            if (swDist > neDist * 2 || neDist > swDist * 2) fetchAndCache(bounds);
+          }
+
           const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
           if (best) {
             setWarningMessage("");
