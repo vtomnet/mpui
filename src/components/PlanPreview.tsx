@@ -15,7 +15,6 @@ export interface Snapshot {
 }
 
 export interface PlanPreviewActions {
-  takeSnapshot: () => Snapshot | null;
   panTo: (lonLat: [number, number]) => void;
 }
 
@@ -124,22 +123,6 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       panTo(lonLat) {
         mapRef.current?.flyTo({ center: lonLat, zoom: 17 });
       },
-      takeSnapshot: () => {
-        const map = mapRef.current;
-        if (!map) return null;
-        const canvas = map.getCanvas();
-        const bounds = map.getBounds();
-        return {
-          image: canvas.toDataURL(),
-          northWest: [bounds.getWest(), bounds.getNorth()],
-          northEast: [bounds.getEast(), bounds.getNorth()],
-          southWest: [bounds.getWest(), bounds.getSouth()],
-          southEast: [bounds.getEast(), bounds.getSouth()],
-          center: [map.getCenter().lng, map.getCenter().lat],
-          width: canvas.width,
-          height: canvas.height,
-        };
-      },
     }));
 
     useEffect(() => {
@@ -210,7 +193,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
               json.features.forEach((f: Feature<Polygon>) => {
                 const id = f.properties?.OBJECTID;
                 if (id && !cachedFeaturesRef.current.has(id.toString())) {
-                  if (cachedFeaturesRef.current.size >= 512) {
+                  if (cachedFeaturesRef.current.size >= 2048) {
                     const oldestKey = cachedFeaturesRef.current.keys().next().value;
                     cachedFeaturesRef.current.delete(oldestKey);
                   }
@@ -235,14 +218,24 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
           }
         } catch (e) {
           console.error('Cropland query failed', e);
-        } finally { fetchingRef.current = false; }
+        } finally {
+          fetchingRef.current = false;
+        }
         return added;
       };
 
       const onPointerMove = (e: MapMouseEvent) => {
+        const bounds = map.getBounds();
+        const width = bounds.getEast() - bounds.getWest();
+        const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
+
         throttle(() => {
-          const best = selectBestFeature(cachedFeaturesRef.current.values(), map.getBounds());
-          setHighlightedId(best?.properties?.OBJECTID ?? null);
+          if (width <= ZOOM_OUT_THRESHOLD) {
+            const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
+            setHighlightedId(best?.properties?.OBJECTID ?? null);
+          } else {
+            setHighlightedId(null);
+          }
         });
       };
       onPointerMoveHandlerRef.current = onPointerMove;
@@ -250,43 +243,40 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
       const onMoveEnd = async () => {
         const bounds = map.getBounds();
         const width = bounds.getEast() - bounds.getWest();
-        const ZOOM_OUT_THRESHOLD = 0.5; // degrees longitude
+        const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
+
+        const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
+        if (cacheMiss) {
+          console.log("CACHE MISS");
+          await fetchAndCache(bounds); // Await because we need the data now
+        } else if (cachedExtentRef.current) {
+          const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
+          const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
+          // Fire-and-forget pre-fetch
+          if (swDist > neDist * 2 || neDist > swDist * 2) fetchAndCache(bounds);
+        }
 
         // Fetching logic
         if (width <= ZOOM_OUT_THRESHOLD) {
-          const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
-          if (cacheMiss) {
-            console.log("CACHE MISS");
-            await fetchAndCache(bounds); // Await because we need the data now
-          } else if (cachedExtentRef.current) {
-            const swDist = getDist(bounds.getSouthWest(), cachedExtentRef.current.getSouthWest());
-            const neDist = getDist(bounds.getNorthEast(), cachedExtentRef.current.getNorthEast());
-            // Fire-and-forget pre-fetch
-            if (swDist > neDist * 2 || neDist > swDist * 2) fetchAndCache(bounds);
-          }
-        }
-        
-        // Highlighting and message logic
-        console.log(cachedFeaturesRef.current.size);
-        const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
-
-        if (best) {
-          setWarningMessage('');
-          setHighlightedId(best.properties?.OBJECTID ?? null);
-        } else {
-          setHighlightedId(null);
-          if (width > ZOOM_OUT_THRESHOLD) {
-            setWarningMessage("Zoom in to see farmland regions");
+          const best = selectBestFeature(cachedFeaturesRef.current.values(), bounds);
+          if (best) {
+            setWarningMessage("");
+            setHighlightedId(best.properties?.OBJECTID ?? null);
           } else {
-            setWarningMessage("These aren't the fields you're looking for.");
+            setWarningMessage("These aren't the fields you're looking for");
+            setHighlightedId(null);
           }
+        } else {
+          setWarningMessage("Zoom in to see farmland regions.");
+          setHighlightedId(null);
         }
       };
 
       map.on('load', () => {
         setMapReady(true);
         map.on('moveend', onMoveEnd);
-        map.on('movestart', () => setWarningMessage('')); onMoveEnd();
+        map.on('movestart', () => setWarningMessage(""));
+        onMoveEnd();
       });
 
       return () => {
