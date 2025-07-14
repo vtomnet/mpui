@@ -245,7 +245,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         const width = bounds.getEast() - bounds.getWest();
         const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
 
-        const cacheMiss = !cachedExtentRef.current || !cachedExtentRef.current.contains(bounds.getCenter());
+        const cacheMiss = !cachedExtentRef.current || !(cachedExtentRef.current.contains(bounds.getSouthWest()) && cachedExtentRef.current.contains(bounds.getNorthEast()));
         if (cacheMiss) {
           console.log("CACHE MISS");
           await fetchAndCache(bounds); // Await because we need the data now
