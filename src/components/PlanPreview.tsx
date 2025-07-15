@@ -108,7 +108,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     const setHighlightedId = (id: string | number | null) => {
       const setFeatureState = () => {
         if (highlightIdRef.current) {
-          map.setFeatureState({ source: "farmland", id: highlightIdRef.current }, { highlighted: false});
+          map.setFeatureState({ source: "farmland", id: highlightIdRef.current }, { highlighted: false });
         }
         if (strId) {
           map.setFeatureState({ source: "farmland", id: strId }, { highlighted: true });
@@ -253,17 +253,17 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
       const onMoveEnd = async () => {
         const bounds = map.getBounds();
-        console.log("onMoveEnd", cachedExtentRef.current, bounds);
         const width = bounds.getEast() - bounds.getWest();
         const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
 
         // Fetching logic
         if (width <= ZOOM_OUT_THRESHOLD) {
           let cacheMiss = true;
-          if (cachedExtentRef.current?.contains(bounds.getCenter())) {
+          const center = bounds.getCenter();
+          if (cachedExtentRef.current?.contains(center)) {
             for (const feature of cachedFeaturesRef.current.values()) {
               const fBounds = getGeoJSONFeatureBounds(feature);
-              if (fBounds && boundsIntersect(fBounds, bounds)) {
+              if (fBounds && fBounds.contains(center)) {
                 cacheMiss = false;
                 break;
               }
