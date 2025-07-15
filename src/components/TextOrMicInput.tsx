@@ -112,7 +112,7 @@ export default function TextOrMicInput({ onResult }: Props) {
     <div className="pt-0 px-4 pb-4 w-full flex items-center gap-3 pointer-events-auto">
       <form
         onSubmit={handleTextSubmit}
-        className="flex-1 flex items-center gap-3"
+        className="relative flex-1 flex items-center gap-3"
       >
         <Input
           type="text"
@@ -121,26 +121,25 @@ export default function TextOrMicInput({ onResult }: Props) {
           value={text}
           onChange={handleTextChange}
           placeholder="Type or speak a mission plan"
-          className="text-base h-18 flex-1 focus-visible:ring-0 focus-visible:border-input backdrop-blur-lg border-none placeholder:text-gray-700"
+          className="text-base h-20 flex-1 focus-visible:ring-0 focus-visible:border-input backdrop-blur-lg border-none placeholder:text-gray-700 rounded-full pr-12" // Add padding to the right for the button
           style={{ fontSize: "18px" }}
           disabled={loading}
         />
         <Button
           type="submit"
           disabled={text.trim() === "" || loading}
-          className="size-18 p-0 disabled:bg-gray-950 backdrop-blur-lg"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 disabled:bg-gray-950/50 size-16"
         >
           {loadingSource === "text" ? (
             <Spinner variant="secondary" size="lg" />
           ) : (
-            <FontAwesomeIcon icon={faArrowUp} size="xl" />
+            <FontAwesomeIcon icon={faArrowUp} size="2xl" />
           )}
         </Button>
       </form>
       <Button
         onClick={handleMicClick}
         disabled={loading}
-        className="size-18 p-0"
         variant={recording ? "destructive" : "default"}
       >
         {loadingSource === "mic" ? (
@@ -148,7 +147,7 @@ export default function TextOrMicInput({ onResult }: Props) {
         ) : (
           <FontAwesomeIcon
             icon={recording ? faStop : faMicrophone}
-            size="xl"
+            size="2xl"
           />
         )}
       </Button>
