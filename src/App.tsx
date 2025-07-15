@@ -294,6 +294,9 @@ export default function App() {
                 />
               </div>
             </div>
+            <div className="mt-auto pt-4 text-center text-xs text-muted-foreground">
+              Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics
+            </div>
           </div>
         </div>
       )}
