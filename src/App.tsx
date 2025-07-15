@@ -3,41 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
 import PlanPreview, { PlanPreviewActions } from "@/components/PlanPreview";
+import SearchPanel from "@/components/SearchPanel";
+import SettingsPanel from "@/components/SettingsPanel";
+import TextInput from "@/components/TextInput";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrophone, faStop, faArrowUp, faGear, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
-
-const SERVER = "http://localhost:3000";
-
-interface NominatimResult {
-  place_id: number;
-  lat: string;
-  lon: string;
-  display_name: string;
-}
+import { faMicrophone, faStop, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 
 export default function App() {
-  const [showSettings, setShowSettings] = useState<boolean>(false);
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
-  const [showSearch, setShowSearch] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
-  const searchDebounceTimer = useRef<number | null>(null);
+
   const [recording, setRecording] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [text, setText] = useState<string>("");
   const [taskXml, setTaskXml] = useState<string>("");
+  const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
+
+  const planPreviewRef = useRef<PlanPreviewActions>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const planPreviewRef = useRef<PlanPreviewActions>(null);
-  const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setInitialCenter([position.coords.longitude, position.coords.latitude]);
-      },
+      (p) => setInitialCenter([p.coords.longitude, p.coords.latitude]),
       (error) => {
         console.error("Error getting user location:", error);
         // Fallback to a default location if geolocation fails
@@ -66,24 +55,14 @@ export default function App() {
         mediaRecorderRef.current.onstop = async () => {
           setLoading(true);
 
-          const snapshot = planPreviewRef.current?.takeSnapshot();
-
           // Note: Safari will send an mp4 and claim it's a webm.
           // Server corrects for this with mime-type detection.
           const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           const formData = new FormData();
           formData.append("file", audioBlob, "recording.webm");
-          if (snapshot) {
-            formData.append("image", snapshot.image);
-            formData.append("northWest", JSON.stringify(snapshot.northWest));
-            formData.append("northEast", JSON.stringify(snapshot.northEast));
-            formData.append("southWest", JSON.stringify(snapshot.southWest));
-            formData.append("southEast", JSON.stringify(snapshot.southEast));
-            formData.append("center", JSON.stringify(snapshot.center));
-          }
 
           try {
-            const res = await fetch(SERVER + "/api/voice", {
+            const res = await fetch("/api/voice", {
               method: "POST",
               body: formData,
             });
@@ -120,25 +99,13 @@ export default function App() {
     setLoading(true);
     setText("");
 
-    const snapshot = planPreviewRef.current?.takeSnapshot();
-
-    if (snapshot && snapshot.image) {
-      const newTab = window.open();
-      if (newTab) {
-        newTab.document.body.innerHTML = `<img src="${snapshot.image}" alt="map snapshot" />`;
-      } else {
-        console.error("Failed to open new tab for snapshot debugging.");
-      }
-    }
-
-    const res = await fetch(SERVER + "/api/text", {
+    const res = await fetch("/api/text", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: theText,
         schemaName: "clearpath_husky",
         // geojsonName: "reza20",
-        snapshot: snapshot,
       }),
     });
 
@@ -151,56 +118,28 @@ export default function App() {
     setText(e.target.value);
   };
 
-  const handleSearchQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-
-    if (searchDebounceTimer.current) {
-      clearTimeout(searchDebounceTimer.current);
-    }
-
-    if (query.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-
-    searchDebounceTimer.current = window.setTimeout(async () => {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json`);
-        const data = await res.json();
-        setSearchResults(data);
-      } catch (error) {
-        console.error("Error searching location:", error);
-      }
-    }, 300);
-  };
-
-  const handleSearchResultClick = (result: NominatimResult) => {
-    const lon = parseFloat(result.lon);
-    const lat = parseFloat(result.lat);
-    planPreviewRef.current?.panTo([lon, lat]);
-    setShowSearch(false);
-    setSearchQuery('');
-    setSearchResults([]);
-  };
-
   return (
     <div className="relative w-screen h-screen">
-      <PlanPreview ref={planPreviewRef} xml={taskXml} initialCenter={initialCenter} realtimeHighlighting={realtimeHighlighting} showCachedPolygons={showCachedPolygons} />
-      <div className="fixed top-4 right-4 z-10">
-        <Button onClick={() => setShowSettings(true)} variant="secondary" className="size-12 rounded-full p-0">
-          <FontAwesomeIcon icon={faGear} size="xl" />
-        </Button>
-      </div>
+      <PlanPreview
+        ref={planPreviewRef}
+        xml={taskXml}
+        initialCenter={initialCenter}
+        realtimeHighlighting={realtimeHighlighting}
+        showCachedPolygons={showCachedPolygons}
+      />
+
+      <SettingsPanel
+        realtimeHighlighting={realtimeHighlighting}
+        setRealtimeHighlighting={setRealtimeHighlighting}
+        showCachedPolygons={showCachedPolygons}
+        setShowCachedPolygons={setShowCachedPolygons}
+      />
+
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
-            <Button
-              onClick={() => setShowSearch(true)}
-              className="size-18 p-0"
-            >
-              <FontAwesomeIcon icon={faSearch} size="xl"/>
-            </Button>
+            <SearchPanel onPanTo={coords => planPreviewRef.current?.panTo(coords)}/>
+
             <Button
               onClick={handleMicClick}
               className="size-18 p-0"
@@ -210,96 +149,14 @@ export default function App() {
             </Button>
           </div>
         </div>
-        <div className="pt-0 px-4 pb-4 w-full">
-          <form onSubmit={handleTextSubmit} className="flex items-center gap-3 pointer-events-auto">
-            <Input
-              type="text"
-              name="text"
-              autoComplete="off"
-              value={text}
-              onChange={handleTextChange}
-              placeholder="Type or speak a mission plan"
-              className="text-base h-18 flex-1 focus-visible:ring-0 focus-visible:border-input backdrop-blur-lg border-none placeholder:text-gray-700"
-              style={{ fontSize: "18px" }}
-            />
-            <Button
-              type="submit"
-              disabled={text.trim() === "" || loading}
-              className="size-18 p-0 disabled:bg-gray-950 backdrop-blur-lg"
-            >
-              {loading ? (
-                <Spinner variant="secondary" size="lg"/>
-              ) : (
-              <FontAwesomeIcon icon={faArrowUp} size="xl" />
-              )}
-            </Button>
-          </form>
-        </div>
+
+        <TextInput
+          text={text}
+          loading={loading}
+          onChange={handleTextChange}
+          onSubmit={handleTextSubmit}
+        />
       </div>
-      {showSearch && (
-        <div className="fixed inset-0 bg-black/50 z-20 flex items-center justify-center p-4">
-          <div className="bg-background w-full max-w-2xl h-full max-h-[80vh] rounded-lg p-4 flex flex-col shadow-2xl">
-            <div className="flex justify-between items-center mb-4 pb-4 border-b">
-              <h2 className="text-xl font-bold">Search Location</h2>
-              <Button onClick={() => setShowSearch(false)} variant="ghost" className="size-8 p-0">
-                <FontAwesomeIcon icon={faTimes} />
-              </Button>
-            </div>
-            <Input
-              type="text"
-              placeholder="Search for a location..."
-              value={searchQuery}
-              onChange={handleSearchQueryChange}
-              className="mb-4"
-              autoFocus
-            />
-            <div className="flex-1 overflow-y-auto">
-              {searchResults.map(result => (
-                <div key={result.place_id} onClick={() => handleSearchResultClick(result)} className="p-2 hover:bg-muted cursor-pointer rounded">
-                  {result.display_name}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      {showSettings && (
-        <div className="fixed inset-0 bg-black/50 z-20 flex items-center justify-center p-4">
-          <div className="bg-background w-full max-w-2xl h-full max-h-[80vh] rounded-lg p-4 flex flex-col shadow-2xl">
-            <div className="flex justify-between items-center mb-4 pb-4 border-b">
-              <h2 className="text-xl font-bold">Settings</h2>
-              <Button onClick={() => setShowSettings(false)} variant="ghost" className="size-8 p-0">
-                <FontAwesomeIcon icon={faTimes} />
-              </Button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="realtime-rendering" className="text-sm font-medium">Realtime feature highlighting</label>
-                <input
-                  type="checkbox"
-                  id="realtime-rendering"
-                  className="h-5 w-5 rounded"
-                  checked={realtimeHighlighting}
-                  onChange={(e) => setRealtimeHighlighting(e.target.checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="show-cached-polygons" className="text-sm font-medium">Show cached polygons (debug)</label>
-                <input
-                  type="checkbox"
-                  id="show-cached-polygons"
-                  className="h-5 w-5 rounded"
-                  checked={showCachedPolygons}
-                  onChange={(e) => setShowCachedPolygons(e.target.checked)}
-                />
-              </div>
-            </div>
-            <div className="mt-auto pt-4 text-center text-xs text-muted-foreground">
-              Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
