@@ -112,10 +112,7 @@ export default function TextOrMicInput({ onResult }: Props) {
 
   return (
     <div className="pt-0 px-4 pb-4 w-full flex items-center gap-3 pointer-events-auto">
-      <form
-        onSubmit={handleTextSubmit}
-        className="relative flex-1 flex items-center gap-3"
-      >
+      <form onSubmit={handleTextSubmit} className="relative flex-1 flex items-center gap-3">
         <Input
           type="text"
           name="text"
@@ -123,7 +120,7 @@ export default function TextOrMicInput({ onResult }: Props) {
           value={text}
           onChange={handleTextChange}
           placeholder="Type or speak a mission plan"
-          className="text-base h-20 flex-1 focus-visible:ring-0 focus-visible:border-input backdrop-blur-lg border-none placeholder:text-gray-700 rounded-full pr-12" // Add padding to the right for the button
+          className="text-base h-20 flex-1 placeholder:text-gray-50 pr-12 glass"
           style={{ fontSize: "18px" }}
           disabled={loading}
         />
@@ -131,8 +128,8 @@ export default function TextOrMicInput({ onResult }: Props) {
           type={hasText ? "submit" : "button"}
           onClick={!hasText ? handleMicClick : undefined}
           disabled={loading}
-          variant={recording ? "destructive" : "default"}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 disabled:bg-gray-950/50 size-16"
+          variant={recording ? "destructive" : "ghost"}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 size-16 bg-none"
         >
           {loading ? (
             <Spinner variant="secondary" size="lg" />

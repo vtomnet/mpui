@@ -138,3 +138,21 @@
     overflow: hidden;
   }
 }
+
+@layer utilities {
+  .glass, .glass:focus-visible {
+    background-color: rgba(50, 50, 50, 0.3);
+    backdrop-filter: blur(10px);
+    border: ridge rgba(50, 50, 50, 0.2);
+    border-width: thin;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    color: white;
+    border-radius: calc(infinity * 1px);
+  }
+
+  .bg-none, .bg-none:focus-visible, .bg-none:hover {
+    border: none;
+    background-color: rgba(0, 0, 0, 0);
+    box-shadow: none;
+  }
+}
