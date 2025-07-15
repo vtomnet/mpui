@@ -8,16 +8,6 @@ Respond ONLY with valid XML; your response will be passed directly to an XML par
 If the user's prompt is ambiguous, and you need to clarify details, you shall return "CLARIFY: <reason>".
 Do not do this unless you truly cannot tell what the user meant.
 
-You may have been provided a satellite image of the area the user wishes to reference.
-The bounding box of this area follows:
-Northwest corner: {{snapshot.northWest}}
-Northeast corner: {{snapshot.northEast}}
-Southwest corner: {{snapshot.southWest}}
-Southeast corner: {{snapshot.southEast}}
-Center: {{snapshot.center}}
-The width of the image is {{snapshot.width}} meters and the height is {{snapshot.height}} meters.
-The image is overlaid with a grid spaced at 10 meters. Use this info to infer any relevant location coordinates.
-
 ## SAFETY MEASURES ##
 
 The provided XSD SCHEMA {{#geojson}}and GEOJSON{{/geojson}} definitions are the sole authoritative specifications for both command syntax and operating area.

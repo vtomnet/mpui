@@ -9,7 +9,7 @@ Mustache.escape = text => text;
 
 dotenv.config();
 
-const openai = new OpenAI();
+const client = new OpenAI();
 
 async function getFile(filename: string) {
   let filePath = path.join(process.cwd(), filename);
@@ -17,34 +17,26 @@ async function getFile(filename: string) {
   return file;
 }
 
-export async function getXml(
+export async function getResponse(
   input: string,
   schemaName: string,
   geojsonName: string | undefined,
-  snapshot,
 ) {
   // FIXME guard against someone using '../' in filename
   try {
     const schema = await getFile(`/public/schemas/${schemaName}.xsd`);
     const geojson = geojsonName ? await getFile(`/public/geojson/${geojsonName}.geojson`) : false;
     const systemPromptTmpl = await getFile("/resources/system_prompt.txt");
-    console.log({ schema, geojson, snapshot });
-    const systemPrompt = Mustache.render(systemPromptTmpl, { schema, geojson, snapshot });
+    console.log({ schema, geojson });
+    const systemPrompt = Mustache.render(systemPromptTmpl, { schema, geojson });
     console.log("SYSTEM PROMPT:", systemPrompt);
 
     const content: OpenAI.Responses.ResponseInputItem.Message["content"] = [
       { type: "input_text", text: input }
     ];
-    if (snapshot?.image) {
-      content.push({
-        type: "input_image",
-        image_url: snapshot.image,
-        detail: "high"
-      });
-    }
     console.log("CONTENT:", content);
 
-    const response = await openai.responses.create({
+    const response = await client.responses.create({
       model: "o4-mini",
       input: [{ role: "user", content }],
       instructions: systemPrompt,
