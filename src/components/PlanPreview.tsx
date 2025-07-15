@@ -141,6 +141,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
 
       const map = new LibreMap({
         container: containerRef.current,
+        attributionControl: false,
         style: {
           version: 8,
           sources: {
