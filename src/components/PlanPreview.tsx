@@ -108,10 +108,10 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
     const setHighlightedId = (id: string | number | null) => {
       const setFeatureState = () => {
         if (highlightIdRef.current) {
-          map.setFeatureState({ source: "farmland", id: highlightIdRef.current }, { highlighted: false });
+          map?.setFeatureState({ source: "farmland", id: highlightIdRef.current }, { highlighted: false });
         }
         if (strId) {
-          map.setFeatureState({ source: "farmland", id: strId }, { highlighted: true });
+          map?.setFeatureState({ source: "farmland", id: strId }, { highlighted: true });
         }
         highlightIdRef.current = strId;
       }
@@ -207,15 +207,18 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
                 if (id && !cachedFeaturesRef.current.has(id.toString())) {
                   if (cachedFeaturesRef.current.size >= 2048) {
                     const oldestKey = cachedFeaturesRef.current.keys().next().value;
-                    cachedFeaturesRef.current.delete(oldestKey);
+                    if (oldestKey) cachedFeaturesRef.current.delete(oldestKey);
                   }
                   f.id = id; // promoteId needs top-level id
                   cachedFeaturesRef.current.set(id.toString(), f);
                   added = true;
                 }
               });
-              if(added) {
-                const collection = { type: 'FeatureCollection', features: Array.from(cachedFeaturesRef.current.values()) };
+              if (added) {
+                const collection = {
+                  type: 'FeatureCollection',
+                  features: Array.from(cachedFeaturesRef.current.values())
+                } as GeoJSON.GeoJSON;
                 (map.getSource('farmland') as GeoJSONSource)?.setData(collection);
                 (map.getSource('cached-polygons-debug') as GeoJSONSource)?.setData(collection);
               }
@@ -258,6 +261,7 @@ const PlanPreview = forwardRef<PlanPreviewActions, { xml: string; initialCenter:
         const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
 
         // Fetching logic
+        // TODO getting more cache misses than I'd like
         if (width <= ZOOM_OUT_THRESHOLD) {
           let cacheMiss = true;
           const center = bounds.getCenter();

@@ -3,11 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowUp,
-  faMicrophone,
-  faStop,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faMicrophone, faStop } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   onResult: (xml: string) => void;
@@ -15,9 +11,7 @@ interface Props {
 
 export default function TextOrMicInput({ onResult }: Props) {
   const [recording, setRecording] = useState<boolean>(false);
-  const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(
-    null
-  );
+  const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
   const loading = loadingSource !== null;
   const [text, setText] = useState<string>("");
 
