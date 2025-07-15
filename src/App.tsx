@@ -27,6 +27,17 @@ export default function App() {
   const handlePath = async (xml: string) => {
     console.log(xml);
     setTaskXml(xml);
+    try {
+      await fetch("http://10.106.96.102:12347", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/xml",
+        },
+        body: xml,
+      });
+    } catch (error) {
+      console.error("Error posting XML to backend:", error);
+    }
   };
 
   return (
