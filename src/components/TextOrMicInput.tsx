@@ -108,6 +108,8 @@ export default function TextOrMicInput({ onResult }: Props) {
     setText(e.target.value);
   };
 
+  const hasText = text.trim() !== "";
+
   return (
     <div className="pt-0 px-4 pb-4 w-full flex items-center gap-3 pointer-events-auto">
       <form
@@ -126,31 +128,23 @@ export default function TextOrMicInput({ onResult }: Props) {
           disabled={loading}
         />
         <Button
-          type="submit"
-          disabled={text.trim() === "" || loading}
+          type={hasText ? "submit" : "button"}
+          onClick={!hasText ? handleMicClick : undefined}
+          disabled={loading}
+          variant={recording ? "destructive" : "default"}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 disabled:bg-gray-950/50 size-16"
         >
-          {loadingSource === "text" ? (
+          {loading ? (
             <Spinner variant="secondary" size="lg" />
-          ) : (
+          ) : recording ? (
+            <FontAwesomeIcon icon={faStop} size="2xl" />
+          ) : hasText ? (
             <FontAwesomeIcon icon={faArrowUp} size="2xl" />
+          ) : (
+            <FontAwesomeIcon icon={faMicrophone} size="2xl" />
           )}
         </Button>
       </form>
-      <Button
-        onClick={handleMicClick}
-        disabled={loading}
-        variant={recording ? "destructive" : "default"}
-      >
-        {loadingSource === "mic" ? (
-          <Spinner variant="secondary" size="lg" />
-        ) : (
-          <FontAwesomeIcon
-            icon={recording ? faStop : faMicrophone}
-            size="2xl"
-          />
-        )}
-      </Button>
     </div>
   );
 }
