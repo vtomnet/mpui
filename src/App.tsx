@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import PlanPreview, { PlanPreviewActions } from "@/components/PlanPreview";
+import MapView, { MapActions } from "@/components/MapView";
+import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import TextOrMicInput from "@/components/TextOrMicInput";
@@ -7,11 +8,10 @@ import TextOrMicInput from "@/components/TextOrMicInput";
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
-
   const [taskXml, setTaskXml] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
-  const planPreviewRef = useRef<PlanPreviewActions>(null);
+  const mapRef = useRef<MapActions>(null);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -31,13 +31,14 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <PlanPreview
-        ref={planPreviewRef}
-        xml={taskXml}
+      <MapView
+        ref={mapRef}
         initialCenter={initialCenter}
         realtimeHighlighting={realtimeHighlighting}
         showCachedPolygons={showCachedPolygons}
-      />
+      >
+        <PathPlan xml={taskXml}/>
+      </MapView>
 
       <SettingsPanel
         realtimeHighlighting={realtimeHighlighting}
@@ -49,7 +50,7 @@ export default function App() {
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
-            <SearchPanel onPanTo={coords => planPreviewRef.current?.panTo(coords)}/>
+            <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
           </div>
         </div>
 

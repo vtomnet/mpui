@@ -22,6 +22,42 @@ export async function getResponse(
   schemaName: string,
   geojsonName: string | undefined,
 ) {
+
+  return `\
+<TaskTemplate xmlns="https://robotics.ucmerced.edu/task"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="https://robotics.ucmerced.edu/task schemas/schemas/clearpath_husky.xsd">
+
+    <CompositeTaskInformation>
+        <TaskID>move_forward_and_face_left</TaskID>
+        <TaskDescription>move the husky forward a meter and facing left</TaskDescription>
+    </CompositeTaskInformation>
+
+    <AtomicTasks>
+        <AtomicTask>
+            <TaskID>move_forward_one_meter_and_turn_left</TaskID>
+            <TaskDescription>Move the Husky robot forward 1 meter and rotate to face left (90 degrees counterclockwise)</TaskDescription>
+            <Action>
+                <ActionType>moveToRelativeLocation</ActionType>
+                <moveToRelativeLocation>
+                    <x>1.0</x>
+                    <y>0.0</y>
+                    <roll>0.0</roll>
+                    <pitch>0.0</pitch>
+                    <yaw>1.5708</yaw>
+                </moveToRelativeLocation>
+            </Action>
+        </AtomicTask>
+    </AtomicTasks>
+
+    <ActionSequence>
+        <Sequence>
+            <TaskID>move_forward_one_meter_and_turn_left</TaskID>
+        </Sequence>
+    </ActionSequence>
+
+</TaskTemplate>`;
+
   // FIXME guard against someone using '../' in filename
   try {
     const schema = await getFile(`/public/schemas/${schemaName}.xsd`);
