@@ -9,6 +9,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   realtimeHighlighting: boolean;
@@ -62,12 +63,10 @@ export default function SettingsPanel({
               <label htmlFor="realtime-rendering" className="text-sm font-medium">
                 Realtime feature highlighting
               </label>
-              <input
-                type="checkbox"
+              <Checkbox
                 id="realtime-rendering"
-                className="h-5 w-5 rounded"
                 checked={realtimeHighlighting}
-                onChange={(e) => setRealtimeHighlighting(e.target.checked)}
+                onCheckedChange={setRealtimeHighlighting}
               />
             </div>
 
@@ -75,12 +74,10 @@ export default function SettingsPanel({
               <label htmlFor="show-cached-polygons" className="text-sm font-medium">
                 Show cached polygons (debug)
               </label>
-              <input
-                type="checkbox"
+              <Checkbox
                 id="show-cached-polygons"
-                className="h-5 w-5 rounded"
                 checked={showCachedPolygons}
-                onChange={(e) => setShowCachedPolygons(e.target.checked)}
+                onCheckedChange={setShowCachedPolygons}
               />
             </div>
 
@@ -88,12 +85,10 @@ export default function SettingsPanel({
               <label htmlFor="post-xml-to-endpoint" className="text-sm font-medium">
                 POST XML to endpoint
               </label>
-              <input
-                type="checkbox"
+              <Checkbox
                 id="post-xml-to-endpoint"
-                className="h-5 w-5 rounded"
                 checked={postXmlToEndpoint}
-                onChange={(e) => setPostXmlToEndpoint(e.target.checked)}
+                onCheckedChange={setPostXmlToEndpoint}
               />
             </div>
 
