@@ -1,0 +1,79 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://robotics.ucmerced.edu/task"
+           xmlns="https://robotics.ucmerced.edu/task"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           elementFormDefault="qualified">
+
+    <!-- Root element for the task -->
+    <xs:element name="TaskTemplate">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="CompositeTaskInformation" type="CompositeTaskInformationType"/>
+                <xs:element name="AtomicTasks" type="AtomicTasksType"/>
+                <xs:element name="ActionSequence" type="ActionSequenceType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Composite Task Information -->
+    <xs:complexType name="CompositeTaskInformationType">
+        <xs:sequence>
+            <xs:element name="TaskID" type="xs:string"/>
+            <xs:element name="TaskDescription" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Atomic Tasks -->
+    <xs:complexType name="AtomicTasksType">
+        <xs:sequence>
+            <xs:element name="AtomicTask" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TaskID" type="xs:string"/>
+                        <xs:element name="TaskDescription" type="xs:string"/>
+                        <xs:element name="Action" type="robotActions" minOccurs="1" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Robot Actions (only moveToRelativeLocation) -->
+    <xs:complexType name="robotActions">
+        <xs:sequence>
+            <xs:element name="ActionType" type="robotActionTypes"/>
+            <xs:element name="moveToRelativeLocation" type="moveToRelativeLocationType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="robotActionTypes">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="moveToRelativeLocation"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- moveToRelativeLocation -->
+    <xs:complexType name="moveToRelativeLocationType">
+        <xs:sequence>
+            <xs:element name="x" type="xs:decimal"/>
+            <xs:element name="y" type="xs:decimal"/>
+            <xs:element name="roll" type="xs:decimal"/>
+            <xs:element name="pitch" type="xs:decimal"/>
+            <xs:element name="yaw" type="xs:decimal"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Action Sequence -->
+    <xs:complexType name="ActionSequenceType">
+        <xs:sequence>
+            <xs:element name="Sequence" type="SequenceType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="SequenceType">
+        <xs:sequence>
+            <xs:element name="TaskID" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>
