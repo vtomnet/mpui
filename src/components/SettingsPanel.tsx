@@ -20,6 +20,8 @@ interface Props {
   setPostXmlToEndpoint: (value: boolean) => void;
   model: string;
   setModel: (value: string) => void;
+  schemaName: string;
+  setSchemaName: (value: string) => void;
   geojsonName: string;
   setGeojsonName: (value: string) => void;
 }
@@ -33,6 +35,8 @@ export default function SettingsPanel({
   setPostXmlToEndpoint,
   model,
   setModel,
+  schemaName,
+  setSchemaName,
   geojsonName,
   setGeojsonName,
 }: Props) {
@@ -44,6 +48,7 @@ export default function SettingsPanel({
     "gpt-4.1",
     "gpt-4.1-nano",
   ];
+  const schemaOptions = ["bd_spot", "clearpath_husky", "kinova_gen3_6dof"];
   const geojsonOptions = [
     { value: "", label: "None" },
     { value: "reza", label: "reza" },
@@ -103,6 +108,26 @@ export default function SettingsPanel({
                 <DropdownMenuContent align="end" className="w-[150px]">
                   <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
                     {modelOptions.map((option) => (
+                      <DropdownMenuRadioItem key={option} value={option}>
+                        {option}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex items-center justify-between p-2">
+              <label className="text-sm font-medium">Robot Schema</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="size-10 w-[150px] font-normal">
+                    {schemaName}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[150px]">
+                  <DropdownMenuRadioGroup value={schemaName} onValueChange={setSchemaName}>
+                    {schemaOptions.map((option) => (
                       <DropdownMenuRadioItem key={option} value={option}>
                         {option}
                       </DropdownMenuRadioItem>

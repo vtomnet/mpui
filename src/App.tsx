@@ -10,6 +10,7 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(false);
   const [model, setModel] = useState<string>("gpt-4.1-nano");
+  const [schemaName, setSchemaName] = useState<string>("clearpath_husky");
   const [geojsonName, setGeojsonName] = useState<string>("");
   const [taskXml, setTaskXml] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
@@ -65,6 +66,8 @@ export default function App() {
         setPostXmlToEndpoint={setPostXmlToEndpoint}
         model={model}
         setModel={setModel}
+        schemaName={schemaName}
+        setSchemaName={setSchemaName}
         geojsonName={geojsonName}
         setGeojsonName={setGeojsonName}
       />
@@ -76,7 +79,7 @@ export default function App() {
           </div>
         </div>
 
-        <TextOrMicInput onResult={handlePath} model={model} geojsonName={geojsonName} />
+        <TextOrMicInput onResult={handlePath} model={model} schemaName={schemaName} geojsonName={geojsonName} />
       </div>
     </div>
   );
