@@ -1,6 +1,14 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import Panel from "./Panel";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Props {
   realtimeHighlighting: boolean;
@@ -27,6 +35,20 @@ export default function SettingsPanel({
   geojsonName,
   setGeojsonName,
 }: Props) {
+  const modelOptions = [
+    "o3-high",
+    "o3-low",
+    "o4-mini-high",
+    "o4-mini-low",
+    "gpt-4.1",
+    "gpt-4.1-nano",
+  ];
+  const geojsonOptions = [
+    { value: "", label: "None" },
+    { value: "reza", label: "reza" },
+    { value: "ucm_graph40", label: "ucm_graph40" },
+  ];
+
   return (
     <Panel
       title="Settings"
@@ -76,38 +98,49 @@ export default function SettingsPanel({
             </div>
 
             <div className="flex items-center justify-between p-2">
-              <label htmlFor="model-select" className="text-sm font-medium">
-                Model
-              </label>
-              <select
-                id="model-select"
-                className="rounded border bg-background px-2 py-1 text-sm"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-              >
-                <option value="o3-high">o3-high</option>
-                <option value="o3-low">o3-low</option>
-                <option value="o4-mini-high">o4-mini-high</option>
-                <option value="o4-mini-low">o4-mini-low</option>
-                <option value="gpt-4.1">gpt-4.1</option>
-                <option value="gpt-4.1-nano">gpt-4.1-nano</option>
-              </select>
+              <label className="text-sm font-medium">Model</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-[150px] justify-start font-normal">
+                    {model}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[150px]">
+                  <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
+                    {modelOptions.map((option) => (
+                      <DropdownMenuRadioItem key={option} value={option}>
+                        {option}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="flex items-center justify-between p-2">
-              <label htmlFor="geojson-select" className="text-sm font-medium">
-                GeoJSON File
-              </label>
-              <select
-                id="geojson-select"
-                className="rounded border bg-background px-2 py-1 text-sm"
-                value={geojsonName}
-                onChange={(e) => setGeojsonName(e.target.value)}
-              >
-                <option value="">None</option>
-                <option value="reza">reza</option>
-                <option value="ucm_graph40">ucm_graph40</option>
-              </select>
+              <label className="text-sm font-medium">GeoJSON File</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-[150px] justify-start font-normal">
+                    {geojsonOptions.find((o) => o.value === geojsonName)?.label}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[150px]">
+                  <DropdownMenuRadioGroup
+                    value={geojsonName}
+                    onValueChange={setGeojsonName}
+                  >
+                    {geojsonOptions.map((option) => (
+                      <DropdownMenuRadioItem
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
