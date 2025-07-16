@@ -6,9 +6,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { text, schemaName, geojsonName } = req.body;
+  const { text, schemaName, geojsonName, model } = req.body;
 
-  const response = await getResponse(text, schemaName, geojsonName);
+  const response = await getResponse(text, schemaName, geojsonName, model);
   if (response === undefined) {
     res.status(500).json({ error: "getResponse failed" });
   }

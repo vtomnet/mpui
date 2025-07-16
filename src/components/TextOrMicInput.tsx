@@ -7,9 +7,10 @@ import { faArrowUp, faMicrophone, faStop } from "@fortawesome/free-solid-svg-ico
 
 interface Props {
   onResult: (xml: string) => void;
+  model: string;
 }
 
-export default function TextOrMicInput({ onResult }: Props) {
+export default function TextOrMicInput({ onResult, model }: Props) {
   const [recording, setRecording] = useState<boolean>(false);
   const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
   const loading = loadingSource !== null;
@@ -43,6 +44,8 @@ export default function TextOrMicInput({ onResult }: Props) {
           });
           const formData = new FormData();
           formData.append("file", audioBlob, "recording.webm");
+          formData.append("schemaName", "clearpath_husky");
+          formData.append("model", model);
 
           try {
             const res = await fetch("/api/voice", {
@@ -92,6 +95,7 @@ export default function TextOrMicInput({ onResult }: Props) {
           text: theText,
           schemaName: "clearpath_husky",
           // geojsonName: "reza20",
+          model,
         }),
       });
 

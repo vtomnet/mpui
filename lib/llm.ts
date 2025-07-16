@@ -21,6 +21,7 @@ export async function getResponse(
   input: string,
   schemaName: string,
   geojsonName: string | undefined,
+  model: string,
 ) {
 
   return `\
@@ -73,7 +74,7 @@ export async function getResponse(
     console.log("CONTENT:", content);
 
     const response = await client.responses.create({
-      model: "o4-mini",
+      model: model,
       input: [{ role: "user", content }],
       instructions: systemPrompt,
       reasoning: {

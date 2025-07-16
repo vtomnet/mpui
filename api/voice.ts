@@ -27,9 +27,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Failed to parse form data' });
     }
 
-    const { schemaName, geojsonName } = fields;
-    if (!schemaName || !geojsonName) {
-      return res.status(400).json({ error: "No schema/geojson name provided" });
+    const { schemaName, geojsonName, model } = fields;
+    if (!schemaName || !model) {
+      return res.status(400).json({ error: "No schema/model name provided" });
     }
 
     const file = files.file;
@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     console.log(`transcript: ${transcript.text}`);
 
-    const response = await getResponse(transcript.text, schemaName[0], geojsonName[0]);
+    const response = await getResponse(transcript.text, schemaName[0], geojsonName?.[0], model[0] as string);
     if (response === undefined) {
       res.status(500).json({ error: "getResponse failed" });
     }

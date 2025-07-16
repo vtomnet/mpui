@@ -9,6 +9,8 @@ interface Props {
   setShowCachedPolygons: (value: boolean) => void;
   postXmlToEndpoint: boolean;
   setPostXmlToEndpoint: (value: boolean) => void;
+  model: string;
+  setModel: (value: string) => void;
 }
 
 export default function SettingsPanel({
@@ -18,6 +20,8 @@ export default function SettingsPanel({
   setShowCachedPolygons,
   postXmlToEndpoint,
   setPostXmlToEndpoint,
+  model,
+  setModel,
 }: Props) {
   return (
     <Panel
@@ -65,6 +69,25 @@ export default function SettingsPanel({
                 checked={postXmlToEndpoint}
                 onChange={(e) => setPostXmlToEndpoint(e.target.checked)}
               />
+            </div>
+
+            <div className="flex items-center justify-between p-2">
+              <label htmlFor="model-select" className="text-sm font-medium">
+                Model
+              </label>
+              <select
+                id="model-select"
+                className="rounded border bg-background px-2 py-1 text-sm"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+              >
+                <option value="o3-high">o3-high</option>
+                <option value="o3-low">o3-low</option>
+                <option value="o4-mini-high">o4-mini-high</option>
+                <option value="o4-mini-low">o4-mini-low</option>
+                <option value="gpt-4.1">gpt-4.1</option>
+                <option value="gpt-4.1-nano">gpt-4.1-nano</option>
+              </select>
             </div>
           </div>
 
