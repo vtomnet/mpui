@@ -17,52 +17,84 @@ async function getFile(filename: string) {
   return file;
 }
 
+export const modelList = [
+  "o3",
+  "o4-mini",
+  "gpt-4.1",
+  "gpt-4.1-nano",
+];
+
+export const schemaList = [
+  "bd_spot",
+  "clearpath_husky",
+  "kinova_gen3_6dof",
+  "gazebo_minimal",
+];
+
+export const geojsonList = [
+  "reza",
+  "ucm_graph40",
+  "test",
+  "none",
+]
+
 export async function getResponse(
   input: string,
   schemaName: string,
-  geojsonName: string | undefined,
+  geojsonName: string,
   model: string,
 ) {
+  if (!schemaList.includes(schemaName)) {
+    console.error("Bad schema:", schemaName);
+    return;
+  }
+  if (!geojsonList.includes(geojsonName)) {
+    console.error("Bad geojson:", geojsonName);
+    return;
+  }
+  if (!modelList.includes(model)) {
+    console.error("Bad model:", model);
+    return;
+  }
 
-  return `\
-<TaskTemplate xmlns="https://robotics.ucmerced.edu/task"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="https://robotics.ucmerced.edu/task schemas/schemas/clearpath_husky.xsd">
+//   return `\
+// <TaskTemplate xmlns="https://robotics.ucmerced.edu/task"
+//               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+//               xsi:schemaLocation="https://robotics.ucmerced.edu/task schemas/schemas/gazebo_minimal.xsd">
 
-    <CompositeTaskInformation>
-        <TaskID>move_forward_and_face_left</TaskID>
-        <TaskDescription>move the husky forward a meter and facing left</TaskDescription>
-    </CompositeTaskInformation>
+//     <CompositeTaskInformation>
+//         <TaskID>move_forward_and_face_left</TaskID>
+//         <TaskDescription>move the husky forward a meter and facing left</TaskDescription>
+//     </CompositeTaskInformation>
 
-    <AtomicTasks>
-        <AtomicTask>
-            <TaskID>move_forward_one_meter_and_turn_left</TaskID>
-            <TaskDescription>Move the Husky robot forward 1 meter and rotate to face left (90 degrees counterclockwise)</TaskDescription>
-            <Action>
-                <ActionType>moveToRelativeLocation</ActionType>
-                <moveToRelativeLocation>
-                    <x>1.0</x>
-                    <y>0.0</y>
-                    <roll>0.0</roll>
-                    <pitch>0.0</pitch>
-                    <yaw>1.5708</yaw>
-                </moveToRelativeLocation>
-            </Action>
-        </AtomicTask>
-    </AtomicTasks>
+//     <AtomicTasks>
+//         <AtomicTask>
+//             <TaskID>move_forward_one_meter_and_turn_left</TaskID>
+//             <TaskDescription>Move the Husky robot forward 1 meter and rotate to face left (90 degrees counterclockwise)</TaskDescription>
+//             <Action>
+//                 <ActionType>moveToRelativeLocation</ActionType>
+//                 <moveToRelativeLocation>
+//                     <x>1.0</x>
+//                     <y>0.0</y>
+//                     <roll>0.0</roll>
+//                     <pitch>0.0</pitch>
+//                     <yaw>1.5708</yaw>
+//                 </moveToRelativeLocation>
+//             </Action>
+//         </AtomicTask>
+//     </AtomicTasks>
 
-    <ActionSequence>
-        <Sequence>
-            <TaskID>move_forward_one_meter_and_turn_left</TaskID>
-        </Sequence>
-    </ActionSequence>
+//     <ActionSequence>
+//         <Sequence>
+//             <TaskID>move_forward_one_meter_and_turn_left</TaskID>
+//         </Sequence>
+//     </ActionSequence>
 
-</TaskTemplate>`;
+// </TaskTemplate>`;
 
-  // FIXME guard against someone using '../' in filename
   try {
     const schema = await getFile(`/public/schemas/${schemaName}.xsd`);
-    const geojson = geojsonName ? await getFile(`/public/geojson/${geojsonName}.geojson`) : false;
+    const geojson = geojsonName != "none" ? await getFile(`/public/geojson/${geojsonName}.geojson`) : false;
     const systemPromptTmpl = await getFile("/resources/system_prompt.txt");
     console.log({ schema, geojson });
     const systemPrompt = Mustache.render(systemPromptTmpl, { schema, geojson });
@@ -77,15 +109,8 @@ export async function getResponse(
       model: model,
       input: [{ role: "user", content }],
       instructions: systemPrompt,
-      reasoning: {
-        effort: "low"
-      }
     });
     console.log("LLM response:", response.output_text);
-
-    if (response.output_text.startsWith("CLARIFY:")) {
-      throw new Error(response.output_text);
-    }
 
     const xmlDoc = libxmljs.parseXml(response.output_text);
     const xsdDoc = libxmljs.parseXml(schema);

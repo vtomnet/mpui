@@ -4,7 +4,7 @@
     "module": "ESNext",
     "target": "ESNext",
     "lib": ["DOM", "ESNext"],
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

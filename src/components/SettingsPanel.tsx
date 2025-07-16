@@ -41,17 +41,21 @@ export default function SettingsPanel({
   setGeojsonName,
 }: Props) {
   const modelOptions = [
-    "o3-high",
-    "o3-low",
-    "o4-mini-high",
-    "o4-mini-low",
+    "o3",
+    "o4-mini",
     "gpt-4.1",
     "gpt-4.1-nano",
   ];
-  const schemaOptions = ["bd_spot", "clearpath_husky", "kinova_gen3_6dof"];
+  const schemaOptions = [
+    "bd_spot",
+    "clearpath_husky",
+    "kinova_gen3_6dof",
+    "gazebo_minimal"
+  ];
   const geojsonOptions = [
     { value: "", label: "None" },
     { value: "reza", label: "reza" },
+    { value: "test", label: "test" },
     { value: "ucm_graph40", label: "ucm_graph40" },
   ];
 
@@ -105,7 +109,7 @@ export default function SettingsPanel({
                     {model}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[150px]">
+                <DropdownMenuContent align="end" className="w-[200px]">
                   <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
                     {modelOptions.map((option) => (
                       <DropdownMenuRadioItem key={option} value={option}>
@@ -125,7 +129,7 @@ export default function SettingsPanel({
                     {schemaName}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[150px]">
+                <DropdownMenuContent align="end" className="w-[200px]">
                   <DropdownMenuRadioGroup value={schemaName} onValueChange={setSchemaName}>
                     {schemaOptions.map((option) => (
                       <DropdownMenuRadioItem key={option} value={option}>
@@ -145,7 +149,7 @@ export default function SettingsPanel({
                     {geojsonOptions.find((o) => o.value === geojsonName)?.label}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[150px]">
+                <DropdownMenuContent align="end" className="w-[200px]">
                   <DropdownMenuRadioGroup
                     value={geojsonName}
                     onValueChange={setGeojsonName}

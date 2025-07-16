@@ -92,6 +92,7 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
     setLoadingSource("text");
     setText("");
 
+    console.log("HERE?");
     try {
       const res = await fetch("/api/text", {
         method: "POST",
@@ -103,6 +104,9 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
           model,
         }),
       });
+      if (!res.ok) {
+        throw new Error(`Calling /api/text failed: ${res.statusText}`)
+      }
 
       const data = await res.json();
       onResult(data.result);

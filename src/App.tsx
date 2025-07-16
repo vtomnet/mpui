@@ -8,10 +8,10 @@ import TextOrMicInput from "@/components/TextOrMicInput";
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
-  const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(false);
-  const [model, setModel] = useState<string>("gpt-4.1-nano");
-  const [schemaName, setSchemaName] = useState<string>("clearpath_husky");
-  const [geojsonName, setGeojsonName] = useState<string>("");
+  const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(true);
+  const [model, setModel] = useState<string>("o4-mini");
+  const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
+  const [geojsonName, setGeojsonName] = useState<string>("test");
   const [taskXml, setTaskXml] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
@@ -33,6 +33,7 @@ export default function App() {
     setTaskXml(xml);
     if (postXmlToEndpoint) {
       try {
+        console.log("Fetching to endpoint...");
         await fetch("https://10.106.96.102:12347", {
           method: "POST",
           headers: {
