@@ -28,7 +28,7 @@ export default function App() {
     console.log(xml);
     setTaskXml(xml);
     try {
-      await fetch("http://10.106.96.102:12347", {
+      await fetch("https://10.106.96.102:12347", {
         method: "POST",
         headers: {
           "Content-Type": "application/xml",
