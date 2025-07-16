@@ -8,6 +8,7 @@ import TextOrMicInput from "@/components/TextOrMicInput";
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
+  const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(false);
   const [taskXml, setTaskXml] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
@@ -27,16 +28,18 @@ export default function App() {
   const handlePath = async (xml: string) => {
     console.log(xml);
     setTaskXml(xml);
-    try {
-      await fetch("https://10.106.96.102:12347", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/xml",
-        },
-        body: xml,
-      });
-    } catch (error) {
-      console.error("Error posting XML to backend:", error);
+    if (postXmlToEndpoint) {
+      try {
+        await fetch("https://10.106.96.102:12347", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/xml",
+          },
+          body: xml,
+        });
+      } catch (error) {
+        console.error("Error posting XML to backend:", error);
+      }
     }
   };
 
@@ -56,6 +59,8 @@ export default function App() {
         setRealtimeHighlighting={setRealtimeHighlighting}
         showCachedPolygons={showCachedPolygons}
         setShowCachedPolygons={setShowCachedPolygons}
+        postXmlToEndpoint={postXmlToEndpoint}
+        setPostXmlToEndpoint={setPostXmlToEndpoint}
       />
 
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">

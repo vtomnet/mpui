@@ -7,6 +7,8 @@ interface Props {
   setRealtimeHighlighting: (value: boolean) => void;
   showCachedPolygons: boolean;
   setShowCachedPolygons: (value: boolean) => void;
+  postXmlToEndpoint: boolean;
+  setPostXmlToEndpoint: (value: boolean) => void;
 }
 
 export default function SettingsPanel({
@@ -14,6 +16,8 @@ export default function SettingsPanel({
   setRealtimeHighlighting,
   showCachedPolygons,
   setShowCachedPolygons,
+  postXmlToEndpoint,
+  setPostXmlToEndpoint,
 }: Props) {
   return (
     <Panel
@@ -47,6 +51,19 @@ export default function SettingsPanel({
                 className="h-5 w-5 rounded"
                 checked={showCachedPolygons}
                 onChange={(e) => setShowCachedPolygons(e.target.checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-2">
+              <label htmlFor="post-xml-to-endpoint" className="text-sm font-medium">
+                POST XML to endpoint
+              </label>
+              <input
+                type="checkbox"
+                id="post-xml-to-endpoint"
+                className="h-5 w-5 rounded"
+                checked={postXmlToEndpoint}
+                onChange={(e) => setPostXmlToEndpoint(e.target.checked)}
               />
             </div>
           </div>
