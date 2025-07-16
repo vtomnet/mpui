@@ -11,6 +11,8 @@ interface Props {
   setPostXmlToEndpoint: (value: boolean) => void;
   model: string;
   setModel: (value: string) => void;
+  geojsonName: string;
+  setGeojsonName: (value: string) => void;
 }
 
 export default function SettingsPanel({
@@ -22,6 +24,8 @@ export default function SettingsPanel({
   setPostXmlToEndpoint,
   model,
   setModel,
+  geojsonName,
+  setGeojsonName,
 }: Props) {
   return (
     <Panel
@@ -87,6 +91,22 @@ export default function SettingsPanel({
                 <option value="o4-mini-low">o4-mini-low</option>
                 <option value="gpt-4.1">gpt-4.1</option>
                 <option value="gpt-4.1-nano">gpt-4.1-nano</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between p-2">
+              <label htmlFor="geojson-select" className="text-sm font-medium">
+                GeoJSON File
+              </label>
+              <select
+                id="geojson-select"
+                className="rounded border bg-background px-2 py-1 text-sm"
+                value={geojsonName}
+                onChange={(e) => setGeojsonName(e.target.value)}
+              >
+                <option value="">None</option>
+                <option value="reza">reza</option>
+                <option value="ucm_graph40">ucm_graph40</option>
               </select>
             </div>
           </div>

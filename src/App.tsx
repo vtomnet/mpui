@@ -10,6 +10,7 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(false);
   const [model, setModel] = useState<string>("gpt-4.1-nano");
+  const [geojsonName, setGeojsonName] = useState<string>("");
   const [taskXml, setTaskXml] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
@@ -64,6 +65,8 @@ export default function App() {
         setPostXmlToEndpoint={setPostXmlToEndpoint}
         model={model}
         setModel={setModel}
+        geojsonName={geojsonName}
+        setGeojsonName={setGeojsonName}
       />
 
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
@@ -73,7 +76,7 @@ export default function App() {
           </div>
         </div>
 
-        <TextOrMicInput onResult={handlePath} model={model} />
+        <TextOrMicInput onResult={handlePath} model={model} geojsonName={geojsonName} />
       </div>
     </div>
   );

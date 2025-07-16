@@ -8,9 +8,10 @@ import { faArrowUp, faMicrophone, faStop } from "@fortawesome/free-solid-svg-ico
 interface Props {
   onResult: (xml: string) => void;
   model: string;
+  geojsonName: string;
 }
 
-export default function TextOrMicInput({ onResult, model }: Props) {
+export default function TextOrMicInput({ onResult, model, geojsonName }: Props) {
   const [recording, setRecording] = useState<boolean>(false);
   const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
   const loading = loadingSource !== null;
@@ -46,6 +47,9 @@ export default function TextOrMicInput({ onResult, model }: Props) {
           formData.append("file", audioBlob, "recording.webm");
           formData.append("schemaName", "clearpath_husky");
           formData.append("model", model);
+          if (geojsonName) {
+            formData.append("geojsonName", geojsonName);
+          }
 
           try {
             const res = await fetch("/api/voice", {
@@ -94,7 +98,7 @@ export default function TextOrMicInput({ onResult, model }: Props) {
         body: JSON.stringify({
           text: theText,
           schemaName: "clearpath_husky",
-          // geojsonName: "reza20",
+          geojsonName: geojsonName || undefined,
           model,
         }),
       });
