@@ -101,7 +101,7 @@ export default function SettingsPanel({
               <label className="text-sm font-medium">Model</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-[150px] justify-start font-normal">
+                  <Button variant="outline" className="w-[150px] font-normal">
                     {model}
                   </Button>
                 </DropdownMenuTrigger>
@@ -121,7 +121,7 @@ export default function SettingsPanel({
               <label className="text-sm font-medium">GeoJSON File</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-[150px] justify-start font-normal">
+                  <Button variant="outline" className="w-[150px] font-normal">
                     {geojsonOptions.find((o) => o.value === geojsonName)?.label}
                   </Button>
                 </DropdownMenuTrigger>
