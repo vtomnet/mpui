@@ -9,6 +9,9 @@ export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(true);
+  const [endpointUrl, setEndpointUrl] = useState<string>(
+    "https://10.106.96.102:12347"
+  );
   const [model, setModel] = useState<string>("gpt-4.1");
   const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
   const [geojsonName, setGeojsonName] = useState<string>("test");
@@ -34,7 +37,7 @@ export default function App() {
     if (postXmlToEndpoint) {
       try {
         console.log("Fetching to endpoint...");
-        await fetch("https://10.106.96.102:12347", {
+        await fetch(endpointUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/xml",
@@ -65,6 +68,8 @@ export default function App() {
         setShowCachedPolygons={setShowCachedPolygons}
         postXmlToEndpoint={postXmlToEndpoint}
         setPostXmlToEndpoint={setPostXmlToEndpoint}
+        endpointUrl={endpointUrl}
+        setEndpointUrl={setEndpointUrl}
         model={model}
         setModel={setModel}
         schemaName={schemaName}

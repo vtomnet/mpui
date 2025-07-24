@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   realtimeHighlighting: boolean;
@@ -18,6 +19,8 @@ interface Props {
   setShowCachedPolygons: (value: boolean) => void;
   postXmlToEndpoint: boolean;
   setPostXmlToEndpoint: (value: boolean) => void;
+  endpointUrl: string;
+  setEndpointUrl: (value: string) => void;
   model: string;
   setModel: (value: string) => void;
   schemaName: string;
@@ -33,6 +36,8 @@ export default function SettingsPanel({
   setShowCachedPolygons,
   postXmlToEndpoint,
   setPostXmlToEndpoint,
+  endpointUrl,
+  setEndpointUrl,
   model,
   setModel,
   schemaName,
@@ -98,6 +103,20 @@ export default function SettingsPanel({
                 id="post-xml-to-endpoint"
                 checked={postXmlToEndpoint}
                 onCheckedChange={setPostXmlToEndpoint}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-2">
+              <label htmlFor="endpoint-url" className="text-sm font-medium">
+                Endpoint URL
+              </label>
+              <Input
+                id="endpoint-url"
+                type="text"
+                value={endpointUrl}
+                onChange={(e) => setEndpointUrl(e.target.value)}
+                className="w-[150px]"
+                disabled={!postXmlToEndpoint}
               />
             </div>
 
