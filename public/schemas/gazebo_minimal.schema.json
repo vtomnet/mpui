@@ -1,0 +1,125 @@
+{
+  "type": "object",
+  "required": [
+    "tasks"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/moveToGPSLocationTask"
+          },
+          {
+            "$ref": "#/$defs/moveToRelativeLocationTask"
+          },
+          {
+            "$ref": "#/$defs/takeThermalPictureTask"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "moveToGPSLocationTask": {
+      "type": "object",
+      "required": [
+        "action",
+        "parameters"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "const": "moveToGPSLocation"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "latitude",
+            "longitude"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "moveToRelativeLocationTask": {
+      "type": "object",
+      "required": [
+        "action",
+        "parameters"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "const": "moveToRelativeLocation"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "x",
+            "y",
+            "roll",
+            "pitch",
+            "yaw"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "roll": {
+              "type": "number"
+            },
+            "pitch": {
+              "type": "number"
+            },
+            "yaw": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "takeThermalPictureTask": {
+      "type": "object",
+      "required": [
+        "action",
+        "parameters"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "const": "takeThermalPicture"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "numberOfSamples"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "numberOfSamples": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  }
+}

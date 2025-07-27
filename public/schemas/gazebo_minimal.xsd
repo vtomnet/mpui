@@ -38,17 +38,20 @@
         </xs:sequence>
     </xs:complexType>
 
-    <!-- Robot Actions (only moveToRelativeLocation) -->
     <xs:complexType name="robotActions">
         <xs:sequence>
             <xs:element name="ActionType" type="robotActionTypes"/>
-            <xs:element name="moveToRelativeLocation" type="moveToRelativeLocationType"/>
+            <xs:choice>
+              <xs:element name="moveToRelativeLocation" type="moveToRelativeLocationType" minOccurs="0"/>
+              <xs:element name="moveToGPSLocation" type="moveToGPSLocationType" minOccurs="0"/>
+            </xs:choice>
         </xs:sequence>
     </xs:complexType>
 
     <xs:simpleType name="robotActionTypes">
         <xs:restriction base="xs:string">
             <xs:enumeration value="moveToRelativeLocation"/>
+            <xs:enumeration value="moveToGPSLocation"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -63,6 +66,15 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="moveToGPSLocationType">
+      <xs:sequence>
+        <xs:element name="latitude" type="xs:decimal"/>
+        <xs:element name="longitude" type="xs:decimal"/>
+        <!-- `reward` shall be 0 -->
+        <xs:element name="reward" type="xs:decimal"/>
+      </xs:sequence>
+    </xs:complexType>
+
     <!-- Action Sequence -->
     <xs:complexType name="ActionSequenceType">
         <xs:sequence>
@@ -72,7 +84,7 @@
 
     <xs:complexType name="SequenceType">
         <xs:sequence>
-            <xs:element name="TaskID" type="xs:string"/>
+            <xs:element name="TaskID" type="xs:string" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
