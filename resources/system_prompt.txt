@@ -1,11 +1,16 @@
 Generate an XML command sequence for an agtech robot based on the XSD SCHEMA given below.
-{{#geojson}}The area in which the robot is operating is given after that as GEOJSON.{{/geojson}}
 The user--a farmer--will provide brief, high level instructions on what the robot should do.
 You shall translate these instructions into XML in accordance with the given specifications.
 Assume the robot starts at the lower left of the field.
 Respond ONLY with valid XML; your response will be passed directly to an XML parser.
 DO NOT return code fences, ONLY the RAW XML.
 Include the namespace declarations exactly as they are in the example provided below.
+
+The field's four corners are:
+Upper Left: 39.5124, 22.4271
+Lower Left: 39.5124, 22.4266
+Upper Right: 39.5121, 22.4271
+Lower Right: 39.5121, 22.4266
 
 
 ## XSD SCHEMA FOR ROBOT ##
@@ -32,13 +37,13 @@ Include the namespace declarations exactly as they are in the example provided b
 
     <CompositeTaskInformation>
         <TaskID>move_forward_and_face_left</TaskID>
-        <TaskDescription>move the husky forward a meter and facing left</TaskDescription>
+        <TaskDescription>move the husky in the X direction a meter and rotate left</TaskDescription>
     </CompositeTaskInformation>
 
     <AtomicTasks>
         <AtomicTask>
-            <TaskID>move_forward_one_meter_and_turn_left</TaskID>
-            <TaskDescription>Move the Husky robot forward 1 meter and rotate to face left (90 degrees counterclockwise)</TaskDescription>
+            <TaskID>move_x_one_meter</TaskID>
+            <TaskDescription>Move the Husky robot forward 1 meter</TaskDescription>
             <Action>
                 <ActionType>moveToRelativeLocation</ActionType>
                 <moveToRelativeLocation>
@@ -46,15 +51,30 @@ Include the namespace declarations exactly as they are in the example provided b
                     <y>0.0</y>
                     <roll>0.0</roll>
                     <pitch>0.0</pitch>
-                    <yaw>1.5708</yaw>
+                    <yaw>0.0</yaw>
                 </moveToRelativeLocation>
             </Action>
+        </AtomicTask>
+        <AtomicTask>
+          <TaskID>turn_left</TaskID>
+          <TaskDescription>Move the robot left 2 meters and then rotate 90 degrees to the left</TaskID>
+          <Action>
+            <ActionType>moveToRelativeLocation</ActionType>
+            <moveToRelativeLocation>
+              <x>0.0</x>
+              <y>2.0</y>
+              <roll>0.0</roll>
+              <pitch>0.0</pitch>
+              <yaw>1.5708</yaw>
+            </moveToRelativeLocation>
+          </Action>
         </AtomicTask>
     </AtomicTasks>
 
     <ActionSequence>
         <Sequence>
-            <TaskID>move_forward_one_meter_and_turn_left</TaskID>
+            <TaskID>move_x_one_meter</TaskID>
+            <TaskID>turn_left</TaskID>
         </Sequence>
     </ActionSequence>
 

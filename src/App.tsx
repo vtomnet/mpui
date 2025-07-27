@@ -55,8 +55,6 @@ export default function App() {
       <MapView
         ref={mapRef}
         initialCenter={initialCenter}
-        realtimeHighlighting={realtimeHighlighting}
-        showCachedPolygons={showCachedPolygons}
       >
         <PathPlan xml={taskXml}/>
       </MapView>
