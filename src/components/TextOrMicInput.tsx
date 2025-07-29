@@ -6,13 +6,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp, faMicrophone, faStop } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
-  onResult: (xml: string) => void;
+  onSttResult: (stt: string) => void;
+  onFinalResult: (xml: string) => void;
   model: string;
   schemaName: string;
   geojsonName: string;
 }
 
-export default function TextOrMicInput({ onResult, model, schemaName, geojsonName }: Props) {
+export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, geojsonName }: Props) {
   const [recording, setRecording] = useState<boolean>(false);
   const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
   const loading = loadingSource !== null;
@@ -25,9 +26,7 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
   const handleMicClick = async () => {
     if (!recording) {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
         mediaRecorderRef.current = new MediaRecorder(stream);
         audioChunksRef.current = [];
@@ -38,12 +37,9 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
 
         mediaRecorderRef.current.onstop = async () => {
           setLoadingSource("mic");
+          onSttResult(""); // Clear previous results
 
-          // Note: Safari will send an mp4 and claim it's a webm.
-          // Server corrects for this with mime-type detection.
-          const audioBlob = new Blob(audioChunksRef.current, {
-            type: "audio/webm",
-          });
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           const formData = new FormData();
           formData.append("file", audioBlob, "recording.webm");
           formData.append("schemaName", schemaName);
@@ -58,16 +54,43 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
               body: formData,
             });
 
-            const data = await res.json();
-            console.log(data.result);
-            onResult(data.result);
+            if (!res.body) throw new Error("Response body is null");
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              console.log(`buffer: ${buffer}`);
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+              for (const line of lines) {
+                if (line.trim() === "") continue;
+                try {
+                  const data = JSON.parse(line);
+                  if (data.stt) onSttResult(data.stt);
+                  if (data.result) onFinalResult(data.result);
+                  if (data.error) {
+                      console.error("Server-side error:", data.error);
+                      onSttResult(`Error: ${data.error}`);
+                  }
+                } catch (e) {
+                    console.error("Failed to parse JSON from stream:", e)
+                }
+              }
+            }
+
           } catch (error) {
             console.error(`Error uploading audio: ${error}`);
+            onSttResult("An error occurred. Please try again.");
           } finally {
             setLoadingSource(null);
-            mediaStreamRef.current
-              ?.getTracks()
-              .forEach((track) => track.stop());
+            mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
             mediaStreamRef.current = null;
           }
         };
@@ -86,13 +109,13 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
   const handleTextSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
+    onSttResult(""); // Clear any previous STT text
 
     const theText = text;
 
     setLoadingSource("text");
     setText("");
 
-    console.log("HERE?");
     try {
       const res = await fetch("/api/text", {
         method: "POST",
@@ -109,7 +132,7 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
       }
 
       const data = await res.json();
-      onResult(data.result);
+      onFinalResult(data.result);
     } catch (error) {
       console.error(`Error submitting text: ${error}`);
     } finally {
@@ -144,12 +167,12 @@ export default function TextOrMicInput({ onResult, model, schemaName, geojsonNam
           variant={recording ? "destructive" : "ghost"}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 size-16 bg-none"
         >
-          {loading ? (
+          {loading && loadingSource === "mic" ? (
             <Spinner variant="secondary" size="lg" />
           ) : recording ? (
             <FontAwesomeIcon icon={faStop} size="2xl" />
           ) : hasText ? (
-            <FontAwesomeIcon icon={faArrowUp} size="2xl" />
+            loading ? <Spinner variant="secondary" size="lg" /> : <FontAwesomeIcon icon={faArrowUp} size="2xl" />
           ) : (
             <FontAwesomeIcon icon={faMicrophone} size="2xl" />
           )}
