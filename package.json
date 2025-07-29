@@ -5,9 +5,8 @@
   "main": "index.html",
   "scripts": {
     "build": "vite build",
-    "dev": "concurrently \"npm:dev:client\" \"npm:dev:server\"",
-    "dev:client": "vite",
-    "dev:server": "tsx watch server/index.ts"
+    "dev": "tsx watch server/index.ts",
+    "start": "NODE_ENV=production tsx server/index.ts"
   },
   "license": "MIT",
   "author": "Thomas Morford",
@@ -21,7 +20,6 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
-    "concurrently": "^8.2.2",
     "tailwindcss": "^4.1.10",
     "tsx": "^4.16.2",
     "tw-animate-css": "^1.3.4",
