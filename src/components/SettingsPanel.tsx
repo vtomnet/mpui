@@ -27,6 +27,8 @@ interface Props {
   setSchemaName: (value: string) => void;
   geojsonName: string;
   setGeojsonName: (value: string) => void;
+  environment: string;
+  setEnvironment: (value: string) => void;
 }
 
 export default function SettingsPanel({
@@ -44,6 +46,8 @@ export default function SettingsPanel({
   setSchemaName,
   geojsonName,
   setGeojsonName,
+  environment,
+  setEnvironment,
 }: Props) {
   const modelOptions = [
     "o3",
@@ -63,6 +67,7 @@ export default function SettingsPanel({
     { value: "test", label: "test" },
     { value: "ucm_graph40", label: "ucm_graph40" },
   ];
+  const environmentOptions = ["none", "map"];
 
   return (
     <Panel
@@ -73,6 +78,28 @@ export default function SettingsPanel({
       {() => (
         <>
           <div className="flex-1 overflow-y-auto">
+            <div className="flex items-center justify-between p-2">
+              <label className="text-sm font-medium">Environment</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="size-10 w-[200px] font-normal">
+                    {environment}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuRadioGroup
+                    value={environment}
+                    onValueChange={setEnvironment}
+                  >
+                    {environmentOptions.map((option) => (
+                      <DropdownMenuRadioItem key={option} value={option}>
+                        {option}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <div className="flex items-center justify-between p-2">
               <label htmlFor="realtime-rendering" className="text-sm font-medium">
                 Realtime feature highlighting

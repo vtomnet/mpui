@@ -15,6 +15,7 @@ export default function App() {
   const [model, setModel] = useState<string>("o4-mini/low");
   const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
   const [geojsonName, setGeojsonName] = useState<string>("test");
+  const [environment, setEnvironment] = useState<string>("none");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
@@ -53,14 +54,16 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <MapView
-        ref={mapRef}
-        initialCenter={initialCenter}
-        realtimeHighlighting={realtimeHighlighting}
-        showCachedPolygons={showCachedPolygons}
-      >
-        <PathPlan xml={taskXml}/>
-      </MapView>
+      {environment === "map" && (
+        <MapView
+          ref={mapRef}
+          initialCenter={initialCenter}
+          realtimeHighlighting={realtimeHighlighting}
+          showCachedPolygons={showCachedPolygons}
+        >
+          <PathPlan xml={taskXml}/>
+        </MapView>
+      )}
 
       <SettingsPanel
         realtimeHighlighting={realtimeHighlighting}
@@ -77,12 +80,16 @@ export default function App() {
         setSchemaName={setSchemaName}
         geojsonName={geojsonName}
         setGeojsonName={setGeojsonName}
+        environment={environment}
+        setEnvironment={setEnvironment}
       />
 
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
-            <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
+            {environment === "map" && (
+              <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
+            )}
           </div>
         </div>
 
