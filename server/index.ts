@@ -6,6 +6,7 @@ import formidable from 'formidable';
 import fs from 'fs';
 import { fileTypeFromFile } from 'file-type';
 import { getResponse, modelList, schemaList, geojsonList } from '../lib/llm.js';
+import ngrok from '@ngrok/ngrok';
 
 dotenv.config();
 
@@ -133,3 +134,6 @@ app.post('/api/voice', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
+
+ngrok.connect({ addr: PORT, authtoken_from_env: true })
+  .then(listener => console.log(`Ingress established at: ${listener.url() }`));
