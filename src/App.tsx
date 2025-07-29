@@ -12,10 +12,11 @@ export default function App() {
   const [endpointUrl, setEndpointUrl] = useState<string>(
     "https://10.106.96.102:12347"
   );
-  const [model, setModel] = useState<string>("gpt-4.1");
+  const [model, setModel] = useState<string>("o4-mini/low");
   const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
   const [geojsonName, setGeojsonName] = useState<string>("test");
   const [taskXml, setTaskXml] = useState<string>("");
+  const [interimText, setInterimText] = useState<string>("");
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
   const mapRef = useRef<MapActions>(null);
@@ -25,13 +26,13 @@ export default function App() {
       (p) => setInitialCenter([p.coords.longitude, p.coords.latitude]),
       (error) => {
         console.error("Error getting user location:", error);
-        // Fallback to a default location if geolocation fails
         setInitialCenter([-120.4202, 37.2664]);
       }
     );
   }, []);
 
-  const handlePath = async (xml: string) => {
+  const handleFinalResult = async (xml: string) => {
+    // setInterimText(""); // Clear interim text when final result is received
     console.log(xml);
     setTaskXml(xml);
     if (postXmlToEndpoint) {
@@ -85,7 +86,21 @@ export default function App() {
           </div>
         </div>
 
-        <TextOrMicInput onResult={handlePath} model={model} schemaName={schemaName} geojsonName={geojsonName} />
+        {interimText && (
+            <div className="w-full px-4 pb-2">
+                <div className="bg-black/50 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
+                    <p className="text-lg"><em>"{interimText}"</em></p>
+                </div>
+            </div>
+        )}
+
+        <TextOrMicInput
+            onSttResult={setInterimText}
+            onFinalResult={handleFinalResult}
+            model={model}
+            schemaName={schemaName}
+            geojsonName={geojsonName}
+        />
       </div>
     </div>
   );
