@@ -21,6 +21,15 @@ export default function App() {
 
   const mapRef = useRef<MapActions>(null);
 
+  useEffect(() => {
+    if (fetchError) {
+      const timer = setTimeout(() => {
+        setFetchError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [fetchError]);
+
   // TODO only request location if loading the map
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -33,7 +42,7 @@ export default function App() {
   }, []);
 
   const handleFinalResult = async (xml: string) => {
-    // setInterimText(""); // Clear interim text when final result is received
+    setInterimText(""); // Clear interim text when final result is received
     console.log(xml);
     setTaskXml(xml);
     setFetchError(null);
@@ -122,6 +131,7 @@ export default function App() {
             model={model}
             schemaName={schemaName}
             geojsonName={geojsonName}
+            setFetchError={setFetchError}
         />
       </div>
     </div>

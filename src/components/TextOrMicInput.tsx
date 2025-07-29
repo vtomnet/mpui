@@ -11,9 +11,10 @@ interface Props {
   model: string;
   schemaName: string;
   geojsonName: string;
+  setFetchError: (error: string | null) => void;
 }
 
-export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, geojsonName }: Props) {
+export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, geojsonName, setFetchError }: Props) {
   const [recording, setRecording] = useState<boolean>(false);
   const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
   const loading = loadingSource !== null;
@@ -36,6 +37,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
         };
 
         mediaRecorderRef.current.onstop = async () => {
+          setFetchError(null);
           setLoadingSource("mic");
           onSttResult(""); // Clear previous results
 
@@ -109,6 +111,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
   const handleTextSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
+    setFetchError(null);
     onSttResult(""); // Clear any previous STT text
 
     const theText = text;
@@ -147,7 +150,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
   const hasText = text.trim() !== "";
 
   return (
-    <div className="pt-0 px-4 pb-4 w-full flex items-center gap-3 pointer-events-auto">
+    <div className="pt-0 pl-6 pr-4 pb-4 w-full flex items-center gap-3 pointer-events-auto">
       <form onSubmit={handleTextSubmit} className="relative flex-1 flex items-center gap-3">
         <Input
           type="text"
