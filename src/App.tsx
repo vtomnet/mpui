@@ -16,6 +16,7 @@ export default function App() {
   const [environment, setEnvironment] = useState<string>("none");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
 
   const mapRef = useRef<MapActions>(null);
@@ -35,18 +36,25 @@ export default function App() {
     // setInterimText(""); // Clear interim text when final result is received
     console.log(xml);
     setTaskXml(xml);
+    setFetchError(null);
     if (postXml) {
       try {
         console.log("Fetching to endpoint...");
-        await fetch(`https://${deviceHost}/device`, {
+        const response = await fetch(`https://${deviceHost}/device`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({data: xml}),
+          body: JSON.stringify({ data: xml }),
         });
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
       } catch (error) {
         console.error("Error posting XML to backend:", error);
+        setFetchError(
+          "Error sending command to device. Check host and connection."
+        );
       }
     }
   };
@@ -91,6 +99,14 @@ export default function App() {
             )}
           </div>
         </div>
+
+        {fetchError && (
+          <div className="w-full px-4 pb-2">
+            <div className="bg-red-500/90 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
+              <p className="text-lg">{fetchError}</p>
+            </div>
+          </div>
+        )}
 
         {interimText && (
             <div className="w-full px-4 pb-2">
