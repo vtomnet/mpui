@@ -8,10 +8,8 @@ import TextOrMicInput from "@/components/TextOrMicInput";
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
-  const [postXmlToEndpoint, setPostXmlToEndpoint] = useState<boolean>(true);
-  const [endpointUrl, setEndpointUrl] = useState<string>(
-    "https://10.106.96.102:12347"
-  );
+  const [postXml, setPostXml] = useState<boolean>(true);
+  const [deviceHost, setDeviceHost] = useState<string>('vocal-genuinely-chipmunk.ngrok-free.app');
   const [model, setModel] = useState<string>("o4-mini/low");
   const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
   const [geojsonName, setGeojsonName] = useState<string>("test");
@@ -22,6 +20,7 @@ export default function App() {
 
   const mapRef = useRef<MapActions>(null);
 
+  // TODO only request location if loading the map
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (p) => setInitialCenter([p.coords.longitude, p.coords.latitude]),
@@ -36,15 +35,15 @@ export default function App() {
     // setInterimText(""); // Clear interim text when final result is received
     console.log(xml);
     setTaskXml(xml);
-    if (postXmlToEndpoint) {
+    if (postXml) {
       try {
         console.log("Fetching to endpoint...");
-        await fetch(endpointUrl, {
+        await fetch(`https://${deviceHost}/device`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/xml",
+            "Content-Type": "application/json",
           },
-          body: xml,
+          body: JSON.stringify({data: xml}),
         });
       } catch (error) {
         console.error("Error posting XML to backend:", error);
@@ -70,10 +69,10 @@ export default function App() {
         setRealtimeHighlighting={setRealtimeHighlighting}
         showCachedPolygons={showCachedPolygons}
         setShowCachedPolygons={setShowCachedPolygons}
-        postXmlToEndpoint={postXmlToEndpoint}
-        setPostXmlToEndpoint={setPostXmlToEndpoint}
-        endpointUrl={endpointUrl}
-        setEndpointUrl={setEndpointUrl}
+        postXml={postXml}
+        setPostXml={setPostXml}
+        deviceHost={deviceHost}
+        setDeviceHost={setDeviceHost}
         model={model}
         setModel={setModel}
         schemaName={schemaName}
