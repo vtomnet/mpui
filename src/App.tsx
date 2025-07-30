@@ -12,9 +12,9 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(true);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
-  const [model, setModel] = useState<string>("o4-mini/low");
-  const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
-  const [geojsonName, setGeojsonName] = useState<string>("test");
+  const [model, setModel] = useState<string>("o3/low");
+  const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
+  const [geojsonName, setGeojsonName] = useState<string>("none");
   const [environment, setEnvironment] = useState<string>("kinova_kortex_gen3_6dof");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");

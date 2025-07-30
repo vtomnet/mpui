@@ -46,24 +46,24 @@
     <!-- Simple type for end effector movement types -->
     <xs:simpleType name="movementType">
         <xs:restriction base="xs:string">
-            <!-- relative movement defined by movement from end effector current position -->
+            <!-- end_effector_link: RELATIVE movement defined by movement from end effector current position -->
             <!-- NOTE: +X is left, -X is right, +Y is up, -Y is down, +Z is forward, -Z is backward -->
+            <!-- NOTE: for the end effector, PITCH is used for turning left/right. -->
             <xs:enumeration value="end_effector_link"/>
-            <!-- absolute movement defined by movement from origin point, not current position -->
+
+            <!-- base_link: ABSOLUTE movement defined by movement from origin point -->
             <!-- NOTE: +X is right, -X is left, +Y is forward, -Y is backward, +Z is up, -Z is down -->
             <xs:enumeration value="base_link"/>
         </xs:restriction>
     </xs:simpleType>
 
     <!-- Complex type for object segmentation -->
-    <!-- NOTE: This will not move the arm. You should include a command to rotate the arm if the object is not found. -->
     <xs:complexType name="identifyObjectType">
         <xs:sequence>
             <!-- object characteristics -->
             <xs:element name="objectName" type="xs:string"/>
-            <!-- distance in meters, normal distance is set to be 0.75m. adjust according to requests -->
+            <!-- distance in meters, normal distance is set to be 0.2m. adjust according to requests -->
             <xs:element name="objectDistance" type="xs:float"/>
-            <xs:element name="objectColor" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -71,14 +71,12 @@
     <xs:complexType name="goToPositionType">
         <xs:sequence>
             <xs:element name="movement" type="movementType"/>
-            <!-- meters in all directions -->
-            <xs:element name="x" type="xs:decimal"/>
-            <xs:element name="y" type="xs:decimal"/>
-            <xs:element name="z" type="xs:decimal"/>
-            <!-- the 3 below are in radians -->
-            <xs:element name="roll" type="xs:decimal"/>
-            <xs:element name="pitch" type="xs:decimal"/>
-            <xs:element name="yaw" type="xs:decimal"/>
+            <xs:element name="x" type="xs:decimal"/> <!-- meters -->
+            <xs:element name="y" type="xs:decimal"/> <!-- meters -->
+            <xs:element name="z" type="xs:decimal"/> <!-- meters -->
+            <xs:element name="roll" type="xs:decimal"/> <!-- radians -->
+            <xs:element name="pitch" type="xs:decimal"/> <!-- radians -->
+            <xs:element name="yaw" type="xs:decimal"/> <!-- radians -->
         </xs:sequence>
     </xs:complexType>
 

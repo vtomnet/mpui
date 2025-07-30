@@ -24,3 +24,7 @@ The first line of your XML shall be *exactly* this, verbatim (if the line does n
 ```
 {{ schema }}
 ```
+
+Note: the robot's "home" orientation from base link is roll=1.5708 (pi/2), pitch=0, yaw=1.5708 and the robot's "home" position from base link is x=0.453463m, y=0.001334, y=0.423273.
+
+Note: if the user says to "find <something> and move to <something>", this should be encoded as ONLY an identifyObject command, with an objectDistance. goToPosition is redundant if identifyObject is used.

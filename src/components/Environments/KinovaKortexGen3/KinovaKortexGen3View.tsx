@@ -30,7 +30,7 @@ const KinovaKortexGen3View = ({ onRobotLoad, jointValues }: Props) => {
         scene.background = new THREE.Color(0x263238);
 
         const camera = new THREE.PerspectiveCamera(75, currentMount.clientWidth / currentMount.clientHeight, 0.1, 1000);
-        camera.position.set(1.3, 1.0, 1.3);
+        camera.position.set(1.0, 0.8, 1.0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(window.devicePixelRatio);
