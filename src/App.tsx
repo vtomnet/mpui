@@ -14,7 +14,7 @@ export default function App() {
   const [model, setModel] = useState<string>("o4-mini/low");
   const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
   const [geojsonName, setGeojsonName] = useState<string>("test");
-  const [environment, setEnvironment] = useState<string>("map");
+  const [environment, setEnvironment] = useState<string>("kinova_kortex_gen3_6dof");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
