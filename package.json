@@ -4,9 +4,9 @@
   "type": "module",
   "main": "index.html",
   "scripts": {
-    "dev": "tsx watch server/index.ts",
-    "proxy": "tsx watch proxy/index.ts",
-    "proxy-dev": "tsx watch proxy/index.ts --dev 3001",
+    "dev": "npx tsx watch server/index.ts",
+    "proxy": "npx tsx watch proxy/index.ts",
+    "proxy-dev": "npx tsx watch proxy/index.ts --dev 3001",
     "dev-all": "concurrently --kill-others \"npm run dev\" \"npm run proxy-dev\"",
     "build": "vite build",
     "start": "NODE_ENV=production tsx server/index.ts"
