@@ -12,6 +12,8 @@ import { createServer as createViteServer } from 'vite';
 async function createServer() {
   dotenv.config();
 
+  fs.mkdirSync(path.join('logs', 'audio'), { recursive: true });
+
   const app = express();
   app.use(cors());
 
@@ -37,6 +39,15 @@ async function createServer() {
       }
 
       const response = await getResponse(text, schemaName, geojsonName, model);
+      fs.appendFileSync(
+        path.join('logs', 'requests.log'),
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          type: 'text',
+          request: { text, schemaName, geojsonName, model },
+          response,
+        }) + '\n'
+      );
       if (response === undefined) {
         return res.status(500).json({ error: "getResponse failed" });
       }
@@ -101,6 +112,9 @@ async function createServer() {
         }
         console.log('filepath:', filepath);
 
+        const loggedAudioFilename = `${Date.now()}_${path.basename(filepath)}`;
+        fs.copyFileSync(filepath, path.join('logs', 'audio', loggedAudioFilename));
+
         res.status(200);
         res.flushHeaders();
 
@@ -116,6 +130,16 @@ async function createServer() {
 
         // 2. Get the full response and send it
         const response = await getResponse(transcript.text, schemaName, geojsonName, model);
+        fs.appendFileSync(
+          path.join('logs', 'requests.log'),
+          JSON.stringify({
+            timestamp: new Date().toISOString(),
+            type: 'voice',
+            request: { text: transcript.text, schemaName, geojsonName, model },
+            response,
+            audioFile: loggedAudioFilename,
+          }) + '\n'
+        );
         console.log(`Response: ${response}`);
         res.write(JSON.stringify({ result: response }) + '\n');
 
