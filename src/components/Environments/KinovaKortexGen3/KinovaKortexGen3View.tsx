@@ -67,6 +67,11 @@ const KinovaKortexGen3View = ({ onRobotLoad, jointValues }: Props) => {
                 robot.traverse(c => {
                     c.castShadow = true;
                 });
+
+                robot.setJointValue('joint_2', 31 * Math.PI / 180);
+                robot.setJointValue('joint_3', -121 * Math.PI / 180);
+                robot.setJointValue('joint_5', 85 * Math.PI / 180);
+
                 scene.add(robot);
                 robotRef.current = robot;
 
