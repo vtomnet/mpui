@@ -17,10 +17,10 @@ interface Props {
   setRealtimeHighlighting: (value: boolean) => void;
   showCachedPolygons: boolean;
   setShowCachedPolygons: (value: boolean) => void;
-  postXmlToEndpoint: boolean;
-  setPostXmlToEndpoint: (value: boolean) => void;
-  endpointUrl: string;
-  setEndpointUrl: (value: string) => void;
+  postXml: boolean;
+  setPostXml: (value: boolean) => void;
+  deviceHost: string;
+  setDeviceHost: (value: string) => void;
   model: string;
   setModel: (value: string) => void;
   schemaName: string;
@@ -36,10 +36,10 @@ export default function SettingsPanel({
   setRealtimeHighlighting,
   showCachedPolygons,
   setShowCachedPolygons,
-  postXmlToEndpoint,
-  setPostXmlToEndpoint,
-  endpointUrl,
-  setEndpointUrl,
+  postXml,
+  setPostXml,
+  deviceHost,
+  setDeviceHost,
   model,
   setModel,
   schemaName,
@@ -124,26 +124,26 @@ export default function SettingsPanel({
 
             <div className="flex items-center justify-between p-2">
               <label htmlFor="post-xml-to-endpoint" className="text-sm font-medium">
-                POST XML to endpoint
+                Send XML to device
               </label>
               <Checkbox
                 id="post-xml-to-endpoint"
-                checked={postXmlToEndpoint}
-                onCheckedChange={setPostXmlToEndpoint}
+                checked={postXml}
+                onCheckedChange={setPostXml}
               />
             </div>
 
             <div className="flex items-center justify-between p-2">
               <label htmlFor="endpoint-url" className="text-sm font-medium">
-                Endpoint URL
+                Device host
               </label>
               <Input
                 id="endpoint-url"
                 type="text"
-                value={endpointUrl}
-                onChange={(e) => setEndpointUrl(e.target.value)}
+                value={deviceHost}
+                onChange={(e) => setDeviceHost(e.target.value)}
                 className="w-[200px]"
-                disabled={!postXmlToEndpoint}
+                disabled={!postXml}
               />
             </div>
 

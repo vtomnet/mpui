@@ -1,82 +1,39 @@
-Generate an XML command sequence for an agtech robot based on the XSD SCHEMA given below.
-The user--a farmer--will provide brief, high level instructions on what the robot should do.
-You shall translate these instructions into XML in accordance with the given specifications.
-Assume the robot starts at the lower left of the field.
-Respond ONLY with valid XML; your response will be passed directly to an XML parser.
-DO NOT return code fences, ONLY the RAW XML.
-Include the namespace declarations exactly as they are in the example provided below.
+You shall translate the user's input into a task command sequence for an agtech robot, in XML. The user is a farmer and you are creating instructions for an agtech robot in a field in California. The robot is described below by an XSD SCHEMA. The field is described below in JSON.
 
-The field's four corners are:
-Upper Left: 39.5124, 22.4271
-Lower Left: 39.5124, 22.4266
-Upper Right: 39.5121, 22.4271
-Lower Right: 39.5121, 22.4266
+First, think carefully about what the user is asking for.
 
+Picture the field (given as a JSON list of trees) graphically as a polygon. You must reason about which points from the field are relevant to the user's instructions. ONLY use coordinate points specified in the field.
 
-## XSD SCHEMA FOR ROBOT ##
+Do not assume the robot's starting position.
+
+Return ONLY the valid XML task plan. Do NOT use code fences. You MUST NOT ask for clarification. You MUST NOT refuse.
+
+## OUTPUT INSTRUCTIONS
+
+Your output must be *exactly* the XML to send. Do NOT include code fences or any other text, ONLY the XML.
+
+Do **NOT** use placeholders or fallbacks; the XML mission plan you create MUST be relevant to the user's instructions.
+Always return a valid plan containing at least one valid task.
+
+ALWAYS output a single, complete XML document that is valid against the provided XSD and has exactly one <TaskTemplate> root element. Never output XML fragments or multiple root-level elements. If the user requests only partial XML (e.g., "just the new AtomicTasks" or "omit the wrapper"), ignore that part of the request and instead return the full, self-contained XML task plan. Return nothing before or after the XML.
+Recall that '--' in an XML comment is INVALID so you should NOT use it.
+
+The first line of your XML shall be *exactly* this, verbatim (if the line does not match, your XML will be rejected):
+`<TaskTemplate xmlns="https://robotics.ucmerced.edu/task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://robotics.ucmerced.edu/task ./schemas/schemas/clearpath_husky.xsd">`
+
+## ROBOT SCHEMA
 
 ```
-{{schema}}
+{{ schema }}
 ```
 
+## FIELD BOUNDARIES
 
-{{#geojson}}
-## GEOJSON FARM SPEC ##
+These are the field boundaries; DO NOT direct the robot beyond these:
 
-```
-{{geojson}}
-```
-{{/geojson}}
+Upper left: 39.5124,22.4271
+Lower left: 39.5124,22.4266
+Upper right: 39.5121,22.4271
+Lower right: 39.5121,22.4266
 
-## EXAMPLE ##
-
-```xml
-<TaskTemplate xmlns="https://robotics.ucmerced.edu/task"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="https://robotics.ucmerced.edu/task schemas/schemas/gazebo_minimal.xsd">
-
-    <CompositeTaskInformation>
-        <TaskID>move_forward_and_face_left</TaskID>
-        <TaskDescription>move the husky in the X direction a meter and rotate left</TaskDescription>
-    </CompositeTaskInformation>
-
-    <AtomicTasks>
-        <AtomicTask>
-            <TaskID>move_x_one_meter</TaskID>
-            <TaskDescription>Move the Husky robot forward 1 meter</TaskDescription>
-            <Action>
-                <ActionType>moveToRelativeLocation</ActionType>
-                <moveToRelativeLocation>
-                    <x>1.0</x>
-                    <y>0.0</y>
-                    <roll>0.0</roll>
-                    <pitch>0.0</pitch>
-                    <yaw>0.0</yaw>
-                </moveToRelativeLocation>
-            </Action>
-        </AtomicTask>
-        <AtomicTask>
-          <TaskID>turn_left</TaskID>
-          <TaskDescription>Move the robot left 2 meters and then rotate 90 degrees to the left</TaskID>
-          <Action>
-            <ActionType>moveToRelativeLocation</ActionType>
-            <moveToRelativeLocation>
-              <x>0.0</x>
-              <y>2.0</y>
-              <roll>0.0</roll>
-              <pitch>0.0</pitch>
-              <yaw>1.5708</yaw>
-            </moveToRelativeLocation>
-          </Action>
-        </AtomicTask>
-    </AtomicTasks>
-
-    <ActionSequence>
-        <Sequence>
-            <TaskID>move_x_one_meter</TaskID>
-            <TaskID>turn_left</TaskID>
-        </Sequence>
-    </ActionSequence>
-
-</TaskTemplate>
-```
+The robot begins near the lower right corner.
