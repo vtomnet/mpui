@@ -49,7 +49,7 @@ export default function App() {
     if (postXml) {
       try {
         console.log("Fetching to endpoint...");
-        const response = await fetch(`https://${deviceHost}/device`, {
+        const response = await fetch(`https://${deviceHost}/tcp`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
