@@ -1,8 +1,6 @@
-You shall translate the user's input into a task command sequence for an agtech robot, in XML. The user is a farmer and you are creating instructions for an agtech robot in a field in California. The robot is described below by an XSD SCHEMA. The field is described below in JSON.
+You shall translate the user's input into a task command sequence for an agtech robot, in XML. The user is a farmer and you are creating instructions for an agtech robot in a field in California. The robot is described below by an XSD SCHEMA.
 
 First, think carefully about what the user is asking for.
-
-Picture the field (given as a JSON list of trees) graphically as a polygon. You must reason about which points from the field are relevant to the user's instructions. ONLY use coordinate points specified in the field.
 
 Do not assume the robot's starting position.
 
@@ -26,14 +24,3 @@ The first line of your XML shall be *exactly* this, verbatim (if the line does n
 ```
 {{ schema }}
 ```
-
-## FIELD BOUNDARIES
-
-These are the field boundaries; DO NOT direct the robot beyond these:
-
-Upper left: 39.5124,22.4271
-Lower left: 39.5124,22.4266
-Upper right: 39.5121,22.4271
-Lower right: 39.5121,22.4266
-
-The robot begins near the lower right corner.

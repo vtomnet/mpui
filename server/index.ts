@@ -79,22 +79,22 @@ async function createServer() {
       try {
         const {
           schemaName: schemaNameField,
-          geojsonName: geojsonNameField,
           model: modelField,
           lon: lonField,
           lat: latField,
         } = fields;
-        if (!schemaNameField || !geojsonNameField || !modelField) {
+        if (!schemaNameField || !modelField) {
           throw new Error("No schema/model name provided");
         }
 
         const model = (modelField as string[])[0];
         const schemaName = (schemaNameField as string[])[0];
-        const geojsonName = (geojsonNameField as string[])[0];
+        // const geojsonName = (geojsonNameField as string[])[0];
+        const geojsonName = null;
 
         if (!modelList.includes(model)) throw new Error(`Bad model: ${model}`);
         if (!schemaList.includes(schemaName)) throw new Error(`Bad schema: ${schemaName}`);
-        if (!geojsonList.includes(geojsonName)) throw new Error(`Bad geojson: ${geojsonName}`);
+        // if (!geojsonList.includes(geojsonName)) throw new Error(`Bad geojson: ${geojsonName}`);
 
         const file = files.file;
         const audioFile = Array.isArray(file) ? file[0] : file;
@@ -119,6 +119,8 @@ async function createServer() {
 
         res.status(200);
         res.flushHeaders();
+
+        res.write(JSON.stringify({"test": "test??"} + '\n'));
 
         const transcript = await openai.audio.transcriptions.create({
           model: "gpt-4o-mini-transcribe",

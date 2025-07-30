@@ -27,10 +27,7 @@
     <!-- Simple type for Manipulator Actions -->
     <xs:simpleType name="manipulatorActionTypes">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="pickObject"/>
-            <xs:enumeration value="placeObject"/>
             <xs:enumeration value="identifyObject"/>
-            <xs:enumeration value="nextBestView"/>
             <xs:enumeration value="goToPosition"/>
         </xs:restriction>
     </xs:simpleType>
@@ -46,20 +43,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Complex type for pickObject -->
-    <xs:complexType name="pickObjectType">
-        <xs:sequence>
-            <xs:element name="gripForce" type="xs:decimal" minOccurs="0"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <!-- Complex type for placeObject -->
-    <xs:complexType name="placeObjectType">
-        <xs:sequence>
-            <xs:element name="releaseForce" type="xs:decimal" minOccurs="0"/>
-        </xs:sequence>
-    </xs:complexType>
-
     <!-- Simple type for end effector movement types -->
     <xs:simpleType name="movementType">
         <xs:restriction base="xs:string">
@@ -73,6 +56,7 @@
     </xs:simpleType>
 
     <!-- Complex type for object segmentation -->
+    <!-- NOTE: This will not move the arm. You should include a command to rotate the arm if the object is not found. -->
     <xs:complexType name="identifyObjectType">
         <xs:sequence>
             <!-- object characteristics -->
@@ -80,14 +64,6 @@
             <!-- distance in meters, normal distance is set to be 0.75m. adjust according to requests -->
             <xs:element name="objectDistance" type="xs:float"/>
             <xs:element name="objectColor" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <!-- Complex type for nextBestView -->
-    <xs:complexType name="nextBestViewType">
-        <xs:sequence>
-            <!-- quality of digital twin on a scale from 1-10, which aligns with how many images to take to generate 3D point cloud -->
-            <xs:element name="resolution" type="xs:integer"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -111,10 +87,7 @@
         <xs:sequence>
             <xs:element name="ActionType" type="manipulatorActionTypes"/>
             <xs:choice>
-                <xs:element name="pickObject" type="pickObjectType"/>
-                <xs:element name="placeObject" type="placeObjectType"/>
                 <xs:element name="identifyObject" type="identifyObjectType"/>
-                <xs:element name="nextBestView" type="nextBestViewType"/>
                 <xs:element name="goToPosition" type="goToPositionType"/>
             </xs:choice>
         </xs:sequence>

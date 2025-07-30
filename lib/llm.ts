@@ -41,13 +41,13 @@ export const geojsonList = [
 export async function getResponse(
   input: string,
   schemaName: string,
-  geojsonName: string,
+  geojsonName: string | null,
   model: string,
 ) {
   if (!schemaList.includes(schemaName)) {
     throw new Error(`Bad schema: ${schemaName}`);
   }
-  if (!geojsonList.includes(geojsonName)) {
+  if (geojsonName !== null && !geojsonList.includes(geojsonName)) {
     throw new Error(`Bad geojson: ${geojsonName}`);
   }
   if (!modelList.includes(model)) {
@@ -56,10 +56,10 @@ export async function getResponse(
 
   try {
     const schema = await getFile(`/public/schemas/${schemaName}.xsd`);
-    const geojson = geojsonName !== "none" ? await getFile(`/public/geojson/${geojsonName}.geojson`) : false;
+    const geojson = false; //geojsonName !== "none" ? await getFile(`/public/geojson/${geojsonName}.geojson`) : false;
     const systemPromptTmpl = await getFile("/resources/system_prompt.txt");
     console.log({ schema, geojson });
-    const systemPrompt = Mustache.render(systemPromptTmpl, { schema, geojson });
+    const systemPrompt = Mustache.render(systemPromptTmpl, { schema, /*geojson*/ });
     console.log("SYSTEM PROMPT:", systemPrompt);
 
     const content: OpenAI.Responses.ResponseInputItem.Message["content"] = [
@@ -71,12 +71,13 @@ export async function getResponse(
     const modelName = slash !== -1 ? model.slice(0, slash) : model;
     const reasoningEffort = slash !== -1 ? { effort: model.slice(slash+1) } : null;
 
-      const response = await client.responses.create({
-       model: modelName,
-       input: [{ role: "user", content }],
-       instructions: systemPrompt,
-       reasoning: reasoningEffort,
-     });    console.log("LLM response:", response.output_text);
+    const response = await client.responses.create({
+      model: modelName,
+      input: [{ role: "user", content }],
+      instructions: systemPrompt,
+      reasoning: reasoningEffort,
+    });
+    console.log("LLM response:", response.output_text);
 
     const xmlDoc = libxmljs.parseXml(response.output_text);
     const xsdDoc = libxmljs.parseXml(schema);
