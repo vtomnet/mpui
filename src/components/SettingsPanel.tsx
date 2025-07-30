@@ -77,7 +77,7 @@ export default function SettingsPanel({
     { value: "test", label: "test" },
     { value: "ucm_graph40", label: "ucm_graph40" },
   ];
-  const environmentOptions = ["none", "map"];
+  const environmentOptions = ["none", "map", "kinova_kortex_gen3_6dof"];
 
   return (
     <Panel

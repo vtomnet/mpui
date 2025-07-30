@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import MapView, { MapActions } from "@/components/Environments/Map/MapView";
+import KinovaKortexGen3View from "@/components/Environments/KinovaKortexGen3/KinovaKortexGen3View";
 import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";
@@ -80,6 +81,7 @@ export default function App() {
           <PathPlan xml={taskXml}/>
         </MapView>
       )}
+      {environment === "kinova_kortex_gen3_6dof" && <KinovaKortexGen3View />}
 
       <SettingsPanel
         realtimeHighlighting={realtimeHighlighting}
