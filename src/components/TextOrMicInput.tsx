@@ -12,9 +12,10 @@ interface Props {
   schemaName: string;
   geojsonName: string;
   setFetchError: (error: string | null) => void;
+  initialCenter: [number, number] | null;
 }
 
-export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, geojsonName, setFetchError }: Props) {
+export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, geojsonName, setFetchError, initialCenter }: Props) {
   const [recording, setRecording] = useState<boolean>(false);
   const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
   const loading = loadingSource !== null;
@@ -48,6 +49,10 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           formData.append("model", model);
           if (geojsonName) {
             formData.append("geojsonName", geojsonName);
+          }
+          if (initialCenter) {
+            formData.append("lon", String(initialCenter[0]));
+            formData.append("lat", String(initialCenter[1]));
           }
 
           try {
@@ -128,6 +133,8 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           schemaName: schemaName,
           geojsonName: geojsonName || undefined,
           model,
+          lon: initialCenter?.[0],
+          lat: initialCenter?.[1],
         }),
       });
       if (!res.ok) {

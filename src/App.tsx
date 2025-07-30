@@ -151,6 +151,7 @@ export default function App() {
             schemaName={schemaName}
             geojsonName={geojsonName}
             setFetchError={setFetchError}
+            initialCenter={initialCenter}
         />
       </div>
     </div>

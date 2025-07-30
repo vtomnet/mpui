@@ -27,7 +27,7 @@ async function createServer() {
 
   apiRouter.post('/text', async (req, res) => {
     try {
-      const { text, schemaName, geojsonName, model } = req.body;
+      const { text, schemaName, geojsonName, model, lon, lat } = req.body;
       if (!model || !modelList.includes(model)) {
         return res.status(401).json({ error: "Unrecognized or missing model" });
       }
@@ -44,7 +44,7 @@ async function createServer() {
         JSON.stringify({
           timestamp: new Date().toISOString(),
           type: 'text',
-          request: { text, schemaName, geojsonName, model },
+          request: { text, schemaName, geojsonName, model, lon, lat },
           response,
         }) + '\n'
       );
@@ -80,7 +80,9 @@ async function createServer() {
         const {
           schemaName: schemaNameField,
           geojsonName: geojsonNameField,
-          model: modelField
+          model: modelField,
+          lon: lonField,
+          lat: latField,
         } = fields;
         if (!schemaNameField || !geojsonNameField || !modelField) {
           throw new Error("No schema/model name provided");
@@ -135,7 +137,14 @@ async function createServer() {
           JSON.stringify({
             timestamp: new Date().toISOString(),
             type: 'voice',
-            request: { text: transcript.text, schemaName, geojsonName, model },
+            request: {
+              text: transcript.text,
+              schemaName,
+              geojsonName,
+              model,
+              lon: lonField ? parseFloat((lonField as string[])[0]) : undefined,
+              lat: latField ? parseFloat((latField as string[])[0]) : undefined,
+            },
             response,
             audioFile: loggedAudioFilename,
           }) + '\n'
