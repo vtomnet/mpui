@@ -1,5 +1,6 @@
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import cors from "cors";
 import net from "net";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -50,6 +51,7 @@ if (isNaN(toPort) || toPort <= 0 || toPort > 65535) {
 }
 
 const app = express();
+app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 interface DeviceRequest {
