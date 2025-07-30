@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import MapView, { MapActions } from "@/components/MapView";
+import MapView, { MapActions } from "@/components/Environments/Map/MapView";
 import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";

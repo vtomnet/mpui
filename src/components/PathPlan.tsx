@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useMap } from "../context/MapContext";
+import { useMap } from "./Environments/Map/MapContext";
 import { LngLatBounds, GeoJSONSource } from "maplibre-gl"
 import type { Feature, Point, LineString } from "geojson";
 
