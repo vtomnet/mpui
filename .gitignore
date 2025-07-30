@@ -11,3 +11,4 @@
 .env.*
 .aider*
 *.pem
+logs
