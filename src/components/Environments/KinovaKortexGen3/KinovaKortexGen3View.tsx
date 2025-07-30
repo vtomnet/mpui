@@ -54,7 +54,7 @@ const KinovaKortexGen3View = () => {
         };
 
         loader.load(
-            '/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_BRAKES_VISION_URDF_ARM_V01.urdf',
+            '/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf',
             (robot) => {
                 console.log(robot);
                 robot.rotation.x = -Math.PI / 2;
