@@ -1,10 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import URDFLoader from 'urdf-loader';
+import URDFLoader, { URDFJoint, URDFRobot } from 'urdf-loader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const KinovaKortexGen3View = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const [robot, setRobot] = useState<URDFRobot | null>(null);
+    const [jointValues, setJointValues] = useState<Record<string, number>>({});
+
+    const handleJointChange = (jointName: string, value: number) => {
+        if (!robot || isNaN(value)) return;
+
+        robot.setJointValue(jointName, value);
+        setJointValues(prev => ({...prev, [jointName]: value}));
+    };
 
     useEffect(() => {
         const currentMount = mountRef.current;
@@ -55,13 +64,20 @@ const KinovaKortexGen3View = () => {
 
         loader.load(
             '/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf',
-            (robot) => {
+            (robot: URDFRobot) => {
                 console.log(robot);
                 robot.rotation.x = -Math.PI / 2;
                 robot.traverse(c => {
                     c.castShadow = true;
                 });
                 scene.add(robot);
+                setRobot(robot);
+
+                const initialJointValues: Record<string, number> = {};
+                Object.values(robot.joints).forEach((j: URDFJoint) => {
+                    initialJointValues[j.name] = j.angle;
+                });
+                setJointValues(initialJointValues);
             },
             undefined,
             (error) => {
@@ -99,7 +115,48 @@ const KinovaKortexGen3View = () => {
         };
     }, []);
 
-    return <div ref={mountRef} className="w-full h-full" />;
+    return (
+        <div className="w-full h-full relative">
+            <div ref={mountRef} className="w-full h-full" />
+            {robot && (
+                <div className="absolute top-0 right-0 w-80 max-h-full overflow-y-auto p-4 bg-gray-900/80 text-white rounded-bl-lg">
+                    <h3 className="text-lg font-bold mb-2">Joints</h3>
+                    <ul className="space-y-2">
+                        {Object.values(robot.joints)
+                            .filter((joint: URDFJoint) => joint.jointType !== 'fixed')
+                            .map((joint: URDFJoint) => {
+                                const min = joint.jointType === 'continuous' ? -2 * Math.PI : joint.limit.lower;
+                                const max = joint.jointType === 'continuous' ? 2 * Math.PI : joint.limit.upper;
+                                const value = jointValues[joint.name] || 0;
+                                return (
+                                    <li key={joint.name}>
+                                        <label className="block text-sm font-medium truncate" title={joint.name}>{joint.name}</label>
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="range"
+                                                min={min}
+                                                max={max}
+                                                step="0.001"
+                                                value={value}
+                                                onChange={e => handleJointChange(joint.name, parseFloat(e.target.value))}
+                                                className="w-full"
+                                            />
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                value={ (value * (180 / Math.PI)).toFixed(1) }
+                                                onChange={e => handleJointChange(joint.name, parseFloat(e.target.value) * (Math.PI / 180))}
+                                                className="w-20 bg-gray-700 text-white p-1 rounded"
+                                            />
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default KinovaKortexGen3View;
