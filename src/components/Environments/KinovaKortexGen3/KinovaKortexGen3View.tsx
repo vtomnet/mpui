@@ -39,23 +39,24 @@ const KinovaKortexGen3View = () => {
         scene.add(directionalLight);
 
         // Ground plane
-        const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(5, 5),
-            new THREE.MeshStandardMaterial({ color: 0xcccccc })
-        );
-        plane.rotation.x = -Math.PI / 2;
-        plane.receiveShadow = true;
-        scene.add(plane);
+        // const plane = new THREE.Mesh(
+        //     new THREE.PlaneGeometry(5, 5),
+        //     new THREE.MeshStandardMaterial({ color: 0xcccccc })
+        // );
+        // plane.rotation.x = -Math.PI / 2;
+        // plane.receiveShadow = true;
+        // scene.add(plane);
 
         // URDF Loader
         const loader = new URDFLoader();
         loader.packages = {
-            'kinova_kortex_gen3_6dof_description': '/models/kinova_kortex_gen3_6dof'
+            'kortex_description': '/models/kinova_kortex_gen3_6dof/kortex_description'
         };
 
         loader.load(
-            '/models/kinova_kortex_gen3_6dof/urdf/gen3_6dof.urdf',
+            '/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_BRAKES_VISION_URDF_ARM_V01.urdf',
             (robot) => {
+                console.log(robot);
                 robot.rotation.x = -Math.PI / 2;
                 robot.traverse(c => {
                     c.castShadow = true;
