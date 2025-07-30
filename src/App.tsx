@@ -9,7 +9,7 @@ export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(true);
-  const [deviceHost, setDeviceHost] = useState<string>('vocal-genuinely-chipmunk.ngrok-free.app');
+  const [deviceHost, setDeviceHost] = useState<string>(location.host);
   const [model, setModel] = useState<string>("o4-mini/low");
   const [schemaName, setSchemaName] = useState<string>("gazebo_minimal");
   const [geojsonName, setGeojsonName] = useState<string>("test");
