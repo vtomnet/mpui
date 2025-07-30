@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import type { URDFRobot } from "urdf-loader";
 import MapView, { MapActions } from "@/components/Environments/Map/MapView";
 import KinovaKortexGen3View from "@/components/Environments/KinovaKortexGen3/KinovaKortexGen3View";
 import PathPlan from "@/components/PathPlan";
@@ -19,6 +20,8 @@ export default function App() {
   const [interimText, setInterimText] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
+  const [robot, setRobot] = useState<URDFRobot | null>(null);
+  const [jointValues, setJointValues] = useState<Record<string, number>>({});
 
   const mapRef = useRef<MapActions>(null);
 
@@ -30,6 +33,15 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [fetchError]);
+
+  const onRobotLoad = useCallback((robot: URDFRobot, initialJoints: Record<string, number>) => {
+    setRobot(robot);
+    setJointValues(initialJoints);
+  }, []);
+
+  const onJointChange = (jointName: string, value: number) => {
+    setJointValues(prev => ({...prev, [jointName]: value}));
+  };
 
   // TODO only request location if loading the map
   useEffect(() => {
@@ -81,7 +93,9 @@ export default function App() {
           <PathPlan xml={taskXml}/>
         </MapView>
       )}
-      {environment === "kinova_kortex_gen3_6dof" && <KinovaKortexGen3View />}
+      {environment === "kinova_kortex_gen3_6dof" && (
+        <KinovaKortexGen3View onRobotLoad={onRobotLoad} jointValues={jointValues} />
+      )}
 
       <SettingsPanel
         realtimeHighlighting={realtimeHighlighting}
@@ -100,6 +114,9 @@ export default function App() {
         setGeojsonName={setGeojsonName}
         environment={environment}
         setEnvironment={setEnvironment}
+        robot={robot}
+        jointValues={jointValues}
+        onJointChange={onJointChange}
       />
 
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">

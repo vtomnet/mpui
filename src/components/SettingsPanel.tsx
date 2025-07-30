@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
+import type { URDFRobot, URDFJoint } from "urdf-loader";
 import Panel from "./Panel";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,9 @@ interface Props {
   setGeojsonName: (value: string) => void;
   environment: string;
   setEnvironment: (value: string) => void;
+  robot: URDFRobot | null;
+  jointValues: Record<string, number>;
+  onJointChange: (jointName: string, value: number) => void;
 }
 
 export default function SettingsPanel({
@@ -48,6 +52,9 @@ export default function SettingsPanel({
   setGeojsonName,
   environment,
   setEnvironment,
+  robot,
+  jointValues,
+  onJointChange,
 }: Props) {
   const modelOptions = [
     "o3/low",
@@ -110,6 +117,61 @@ export default function SettingsPanel({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {environment === "kinova_kortex_gen3_6dof" && robot && (
+              <div className="border-t border-b border-border my-4 py-4 px-2 space-y-4">
+                <h3 className="text-sm font-medium">Joints</h3>
+                <ul className="space-y-4">
+                  {Object.values(robot.joints)
+                    .filter((joint: URDFJoint) => joint.jointType !== "fixed")
+                    .map((joint: URDFJoint) => {
+                      const min =
+                        joint.jointType === "continuous"
+                          ? -2 * Math.PI
+                          : joint.limit.lower;
+                      const max =
+                        joint.jointType === "continuous"
+                          ? 2 * Math.PI
+                          : joint.limit.upper;
+                      const value = jointValues[joint.name] || 0;
+                      return (
+                        <li key={joint.name}>
+                          <label
+                            className="block text-xs font-medium truncate mb-1"
+                            title={joint.name}
+                          >
+                            {joint.name}
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="range"
+                              min={min}
+                              max={max}
+                              step="0.001"
+                              value={value}
+                              onChange={(e) =>
+                                onJointChange(joint.name, parseFloat(e.target.value))
+                              }
+                              className="w-full h-auto"
+                            />
+                            <Input
+                              type="number"
+                              step="0.1"
+                              value={(value * (180 / Math.PI)).toFixed(1)}
+                              onChange={(e) =>
+                                onJointChange(
+                                  joint.name,
+                                  parseFloat(e.target.value) * (Math.PI / 180)
+                                )
+                              }
+                              className="w-20"
+                            />
+                          </div>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
+            )}
             <div className="flex items-center justify-between p-2">
               <label htmlFor="realtime-rendering" className="text-sm font-medium">
                 Realtime feature highlighting
