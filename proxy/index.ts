@@ -130,7 +130,7 @@ function sendTcpMessage(host: string, port: number, data: Buffer): Promise<Buffe
     });
 
     // optional timeout
-    client.setTimeout(60_000, () => {
+    client.setTimeout(10_000, () => {
       client.destroy();
       reject(new Error("TCP connection timed out"));
     });

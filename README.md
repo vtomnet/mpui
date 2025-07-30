@@ -1,7 +1,7 @@
 # MPUI
 
-This is the repo for Mission Planner UI, a web server and mobile app complementary to https://github.com/ucmercedrobotics/gpt-mission-planner.
+This repo hosts Mission Planner UI, a web server and mobile app complementary to https://github.com/ucmercedrobotics/gpt-mission-planner.
 
-`vercel dev`
+TODO instructions
 
 See https://mpui.vercel.app.

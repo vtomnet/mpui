@@ -50,10 +50,20 @@ export default function SettingsPanel({
   setEnvironment,
 }: Props) {
   const modelOptions = [
-    "o3",
-    "o4-mini",
-    "gpt-4.1",
+    "o3/low",
+    "o3/medium",
+    "o3/high",
+
+    "o4-mini/low",
+    "o4-mini/medium",
+    "o4-mini/high",
+
     "gpt-4.1-nano",
+    "gpt-4.1-mini",
+    "gpt-4.1",
+
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
   ];
   const schemaOptions = [
     "bd_spot",
