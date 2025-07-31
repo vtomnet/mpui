@@ -101,7 +101,7 @@ export default function SettingsPanel({
           <div className="flex-1 overflow-y-auto">
             <div className="flex items-center justify-between p-2">
               <label htmlFor="run-name" className="text-sm font-medium">
-                Name this run
+                Session name
               </label>
               <Input
                 id="run-name"
@@ -109,7 +109,6 @@ export default function SettingsPanel({
                 value={runName}
                 onChange={(e) => setRunName(e.target.value)}
                 className="w-[200px]"
-                placeholder="Optional"
               />
             </div>
             <div className="flex items-center justify-between p-2">

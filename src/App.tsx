@@ -8,13 +8,14 @@ import SettingsPanel from "@/components/SettingsPanel";
 import TextOrMicInput from "@/components/TextOrMicInput";
 
 export default function App() {
+  // TODO make these two env-specific
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
-  const [postXml, setPostXml] = useState<boolean>(true);
+  const [postXml, setPostXml] = useState<boolean>(false);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
   const [model, setModel] = useState<string>("o3/low");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
-  const [geojsonName, setGeojsonName] = useState<string>("none");
+  const [geojsonName, setGeojsonName] = useState<string>("None");
   const [environment, setEnvironment] = useState<string>("kinova_kortex_gen3_6dof");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");

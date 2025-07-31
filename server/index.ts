@@ -18,7 +18,7 @@ async function createServer() {
   app.use(cors());
 
   const openai = new OpenAI();
-  const PORT = process.env.PORT || 3001;
+  const PORT = process.env.PORT || 9001;
   // const DOMAIN = process.env.DOMAIN || 'localhost';
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -119,8 +119,6 @@ async function createServer() {
 
         res.status(200);
         res.flushHeaders();
-
-        res.write(JSON.stringify({"test": "test??"} + '\n'));
 
         const transcript = await openai.audio.transcriptions.create({
           model: "gpt-4o-mini-transcribe",
