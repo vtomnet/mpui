@@ -14,6 +14,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
 interface Props {
+  runName: string;
+  setRunName: (value: string) => void;
   realtimeHighlighting: boolean;
   setRealtimeHighlighting: (value: boolean) => void;
   showCachedPolygons: boolean;
@@ -36,6 +38,8 @@ interface Props {
 }
 
 export default function SettingsPanel({
+  runName,
+  setRunName,
   realtimeHighlighting,
   setRealtimeHighlighting,
   showCachedPolygons,
@@ -95,6 +99,19 @@ export default function SettingsPanel({
       {() => (
         <>
           <div className="flex-1 overflow-y-auto">
+            <div className="flex items-center justify-between p-2">
+              <label htmlFor="run-name" className="text-sm font-medium">
+                Name this run
+              </label>
+              <Input
+                id="run-name"
+                type="text"
+                value={runName}
+                onChange={(e) => setRunName(e.target.value)}
+                className="w-[200px]"
+                placeholder="Optional"
+              />
+            </div>
             <div className="flex items-center justify-between p-2">
               <label className="text-sm font-medium">Environment</label>
               <DropdownMenu>

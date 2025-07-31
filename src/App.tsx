@@ -22,6 +22,7 @@ export default function App() {
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
   const [robot, setRobot] = useState<URDFRobot | null>(null);
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
+  const [runName, setRunName] = useState<string>("");
 
   const mapRef = useRef<MapActions>(null);
 
@@ -56,6 +57,9 @@ export default function App() {
 
   const handleFinalResult = async (xml: string) => {
     setInterimText(""); // Clear interim text when final result is received
+    if (runName) {
+      console.log("Run Name:", runName);
+    }
     console.log(xml);
     setTaskXml(xml);
     setFetchError(null);
@@ -98,6 +102,8 @@ export default function App() {
       )}
 
       <SettingsPanel
+        runName={runName}
+        setRunName={setRunName}
         realtimeHighlighting={realtimeHighlighting}
         setRealtimeHighlighting={setRealtimeHighlighting}
         showCachedPolygons={showCachedPolygons}
