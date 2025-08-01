@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { URDFRobot } from "urdf-loader";
-import MapView, { MapActions } from "@/components/Environments/Map/MapView";
-import KinovaKortexGen3View from "@/components/Environments/KinovaKortexGen3/KinovaKortexGen3View";
+import MapView, { MapActions } from "@/components/environments/map/MapView";
+import KinovaKortexGen3View from "@/components/environments/kinova-kortex-gen3-6dof/KinovaKortexGen3View";
 import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";
