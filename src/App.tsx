@@ -84,6 +84,65 @@ export default function App() {
     console.log(xml);
     setTaskXml(xml);
     setFetchError(null);
+
+    if (selectedEnv?.name === "Kinova Kortex Gen3 6DOF" && robot) {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xml, "application/xml");
+
+      const atomicTasks = new Map<string, Element>();
+      xmlDoc.querySelectorAll("AtomicTask").forEach(task => {
+          const taskId = task.querySelector("TaskID")?.textContent;
+          if (taskId) {
+              atomicTasks.set(taskId, task);
+          }
+      });
+
+      const sequenceTaskIds = Array.from(xmlDoc.querySelectorAll("ActionSequence Sequence TaskID")).map(el => el.textContent);
+      
+      let currentJointValues = {...jointValues};
+      let delay = 0;
+
+      const tasksToExecute = sequenceTaskIds.map(id => id ? atomicTasks.get(id) : undefined).filter((t): t is Element => !!t);
+
+      for (const task of tasksToExecute) {
+          const goToPosition = task.querySelector("goToPosition");
+          if (goToPosition) {
+              const movementType = goToPosition.querySelector('movement')?.textContent;
+              
+              const jointMap: Record<string, string> = {
+                  'joint_1': 'x', 'joint_2': 'y', 'joint_3': 'z',
+                  'joint_4': 'roll', 'joint_5': 'pitch', 'joint_6': 'yaw',
+              };
+
+              let changed = false;
+              const nextJointValues = {...currentJointValues};
+
+              for (const [jointName, tagName] of Object.entries(jointMap)) {
+                  const valueStr = goToPosition.querySelector(tagName)?.textContent;
+                  if (valueStr) {
+                      const value = parseFloat(valueStr);
+                      // XML is assumed to have degrees, model uses radians
+                      const radValue = value * Math.PI / 180;
+                      if (movementType === 'end_effector_link') {
+                          nextJointValues[jointName] = (nextJointValues[jointName] || 0) + radValue;
+                      } else { // 'base_link' or undefined is absolute
+                          nextJointValues[jointName] = radValue;
+                      }
+                      changed = true;
+                  }
+              }
+
+              if (changed) {
+                  delay += 1000; // 1s delay between movements
+                  setTimeout(() => {
+                      setJointValues(nextJointValues);
+                  }, delay);
+                  currentJointValues = nextJointValues;
+              }
+          }
+      }
+    }
+
     if (postXml) {
       try {
         console.log("Fetching to endpoint...");
