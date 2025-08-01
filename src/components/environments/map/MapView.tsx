@@ -9,6 +9,7 @@ export interface MapActions {
 
 interface Props {
   initialCenter: [number, number] | null;
+  setInitialCenter: (center: [number, number]) => void;
   realtimeHighlighting: boolean;
   showCachedPolygons: boolean;
 }
@@ -32,18 +33,35 @@ function useRafThrottle() {
 }
 
 const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
-  children, initialCenter, realtimeHighlighting, showCachedPolygons
+  children,
+  initialCenter,
+  setInitialCenter,
+  realtimeHighlighting,
+  showCachedPolygons,
 }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<LibreMap | null>(null);
-    const highlightIdRef = useRef<string | null>(null);
-    const [warningMessage, setWarningMessage] = useState('');
-    const [isMapReady, setMapReady] = useState(false);
-    const fetchingRef = useRef(false);
-    const cachedFeaturesRef = useRef<Map<string, Feature<Polygon>>>(new Map());
-    const cachedExtentRef = useRef<LngLatBounds | null>(null);
-    const throttle = useRafThrottle();
-    const onPointerMoveHandlerRef = useRef<((e: MapMouseEvent) => void) | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LibreMap | null>(null);
+  const highlightIdRef = useRef<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState("");
+  const [isMapReady, setMapReady] = useState(false);
+  const fetchingRef = useRef(false);
+  const cachedFeaturesRef = useRef<Map<string, Feature<Polygon>>>(new Map());
+  const cachedExtentRef = useRef<LngLatBounds | null>(null);
+  const throttle = useRafThrottle();
+  const onPointerMoveHandlerRef = useRef<((e: MapMouseEvent) => void) | null>(
+    null,
+  );
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (p) => setInitialCenter([p.coords.longitude, p.coords.latitude]),
+      (error) => {
+        console.error("Error getting user location:", error);
+        setInitialCenter([-120.4202, 37.2664]);
+      },
+    );
+  }, [setInitialCenter]);
+
 
     // Expose map actions like panTo via the component's ref
     useImperativeHandle(ref, () => ({
@@ -92,7 +110,7 @@ const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
             const iSw = intersection.getSouthWest();
             const intersectionArea = (iNe.lng - iSw.lng) * (iNe.lat - iSw.lat);
             const visibleCenter = intersection.getCenter();
-            const distScore = 1 - getDist(mapCenter, visiblecenter) / maxDist;
+            const distScore = 1 - getDist(mapCenter, visibleCenter) / maxDist;
             const coverageScore = intersectionArea / featureArea;
             const viewportScore = intersectionArea / mapArea;
             const score = 0.25 * coverageScore + 0.25 * viewportScore + 0.5 * distScore;

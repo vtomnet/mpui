@@ -13,17 +13,17 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(false);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
-  const [model, setModel] = useState<string>("o3/low");
+  const [model, setModel] = useState<string>("gemini-2.5-flash");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
   const [geojsonName, setGeojsonName] = useState<string>("None");
-  const [environment, setEnvironment] = useState<string>("kinova_kortex_gen3_6dof");
+  const [environment, setEnvironment] = useState<string>("Kinova Kortex Gen3 6DOF");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
   const [robot, setRobot] = useState<URDFRobot | null>(null);
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
-  const [runName, setRunName] = useState<string>("");
+  const [sessionName, setSessionName] = useState<string>("");
 
   const mapRef = useRef<MapActions>(null);
 
@@ -45,21 +45,11 @@ export default function App() {
     setJointValues(prev => ({...prev, [jointName]: value}));
   };
 
-  // TODO only request location if loading the map
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (p) => setInitialCenter([p.coords.longitude, p.coords.latitude]),
-      (error) => {
-        console.error("Error getting user location:", error);
-        setInitialCenter([-120.4202, 37.2664]);
-      }
-    );
-  }, []);
 
   const handleFinalResult = async (xml: string) => {
     setInterimText(""); // Clear interim text when final result is received
-    if (runName) {
-      console.log("Run Name:", runName);
+    if (sessionName) {
+      console.log("Session Name:", sessionName);
     }
     console.log(xml);
     setTaskXml(xml);
@@ -88,9 +78,10 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      {environment === "map" && (
+      {environment === "Map" && (
         <MapView
           ref={mapRef}
+          setInitialCenter={setInitialCenter}
           initialCenter={initialCenter}
           realtimeHighlighting={realtimeHighlighting}
           showCachedPolygons={showCachedPolygons}
@@ -98,13 +89,13 @@ export default function App() {
           <PathPlan xml={taskXml}/>
         </MapView>
       )}
-      {environment === "kinova_kortex_gen3_6dof" && (
+      {environment === "Kinova Kortex Gen3 6DOF" && (
         <KinovaKortexGen3View onRobotLoad={onRobotLoad} jointValues={jointValues} />
       )}
 
       <SettingsPanel
-        runName={runName}
-        setRunName={setRunName}
+        sessionName={sessionName}
+        setSessionName={setSessionName}
         realtimeHighlighting={realtimeHighlighting}
         setRealtimeHighlighting={setRealtimeHighlighting}
         showCachedPolygons={showCachedPolygons}
@@ -150,8 +141,7 @@ export default function App() {
                 </div>
             </div>
         )}
-
-        <TextOrMicInput
+         <TextOrMicInput
             onSttResult={setInterimText}
             onFinalResult={handleFinalResult}
             model={model}

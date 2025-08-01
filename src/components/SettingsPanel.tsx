@@ -14,8 +14,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
 interface Props {
-  runName: string;
-  setRunName: (value: string) => void;
+  sessionName: string;
+  setSessionName: (value: string) => void;
   realtimeHighlighting: boolean;
   setRealtimeHighlighting: (value: boolean) => void;
   showCachedPolygons: boolean;
@@ -38,8 +38,8 @@ interface Props {
 }
 
 export default function SettingsPanel({
-  runName,
-  setRunName,
+  sessionName,
+  setSessionName,
   realtimeHighlighting,
   setRealtimeHighlighting,
   showCachedPolygons,
@@ -61,20 +61,20 @@ export default function SettingsPanel({
   onJointChange,
 }: Props) {
   const modelOptions = [
-    "o3/low",
-    "o3/medium",
-    "o3/high",
+    // "o3/low",
+    // "o3/medium",
+    // "o3/high",
 
-    "o4-mini/low",
-    "o4-mini/medium",
-    "o4-mini/high",
+    // "o4-mini/low",
+    // "o4-mini/medium",
+    // "o4-mini/high",
 
-    "gpt-4.1-nano",
-    "gpt-4.1-mini",
-    "gpt-4.1",
+    // "gpt-4.1-nano",
+    // "gpt-4.1-mini",
+    // "gpt-4.1",
 
     "gemini-2.5-flash",
-    "gemini-2.5-pro",
+    // "gemini-2.5-pro",
   ];
   const schemaOptions = [
     "bd_spot",
@@ -84,11 +84,12 @@ export default function SettingsPanel({
   ];
   const geojsonOptions = [
     { value: "", label: "None" },
+    { value: "None", label: "None" },
     { value: "reza", label: "reza" },
     { value: "test", label: "test" },
     { value: "ucm_graph40", label: "ucm_graph40" },
   ];
-  const environmentOptions = ["none", "map", "kinova_kortex_gen3_6dof"];
+  const environmentOptions = ["None", "Map", "Kinova Kortex Gen3 6DOF"];
 
   return (
     <Panel
@@ -100,15 +101,16 @@ export default function SettingsPanel({
         <>
           <div className="flex-1 overflow-y-auto">
             <div className="flex items-center justify-between p-2">
-              <label htmlFor="run-name" className="text-sm font-medium">
+              <label htmlFor="session-name" className="text-sm font-medium">
                 Session name
               </label>
               <Input
-                id="run-name"
+                id="session-name"
                 type="text"
-                value={runName}
-                onChange={(e) => setRunName(e.target.value)}
+                value={sessionName}
+                onChange={(e) => setSessionName(e.target.value)}
                 className="w-[200px]"
+                placeholder="Optionally set a session name..."
               />
             </div>
             <div className="flex items-center justify-between p-2">
@@ -133,7 +135,7 @@ export default function SettingsPanel({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            {environment === "kinova_kortex_gen3_6dof" && robot && (
+            {environment === "Kinova Kortex Gen3 6DOF" && robot && (
               <div className="border-t border-b border-border my-4 py-4 px-2 space-y-4">
                 <h3 className="text-sm font-medium">Joints</h3>
                 <ul className="space-y-4">
