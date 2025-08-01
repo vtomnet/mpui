@@ -137,6 +137,18 @@
     @apply bg-background text-foreground;
     overflow: hidden;
   }
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: black;
+    height: 100%;
+    width: 100%;
+  }
+  canvas {
+    display: block;
+    position: absolute;
+  }
 }
 
 @layer utilities {
@@ -148,6 +160,10 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     color: white;
     border-radius: calc(infinity * 1px);
+  }
+
+  .glass [data-radix-collection-item]:focus {
+    background-color: transparent;
   }
 
   .bg-none, .bg-none:focus-visible, .bg-none:hover {

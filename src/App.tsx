@@ -6,9 +6,10 @@ import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import TextOrMicInput from "@/components/TextOrMicInput";
+import EnvironmentDropdown from "@/components/EnvironmentDropdown";
+import { environments } from "@/lib/environments";
 
 export default function App() {
-  // TODO make these two env-specific
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(false);
@@ -28,6 +29,34 @@ export default function App() {
   const mapRef = useRef<MapActions>(null);
 
   useEffect(() => {
+    const selectedEnv = environments.find((e) => e.name === environment);
+    if (selectedEnv) {
+      Object.entries(selectedEnv.presets).forEach(([key, value]) => {
+        switch (key) {
+          case "realtimeHighlighting":
+            setRealtimeHighlighting(value as boolean);
+            break;
+          case "showCachedPolygons":
+            setShowCachedPolygons(value as boolean);
+            break;
+          case "postXml":
+            setPostXml(value as boolean);
+            break;
+          case "model":
+            setModel(value as string);
+            break;
+          case "schemaName":
+            setSchemaName(value as string);
+            break;
+          case "geojsonName":
+            setGeojsonName(value as string);
+            break;
+        }
+      });
+    }
+  }, [environment]);
+
+  useEffect(() => {
     if (fetchError) {
       const timer = setTimeout(() => {
         setFetchError(null);
@@ -35,6 +64,24 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [fetchError]);
+
+  function resizeCanvas() {
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.style.height = `${vh}px`;
+      canvas.style.width = `${vw}px`;
+      canvas.height = vh;
+      canvas.width = vw;
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', resizeCanvas);
+    window.addEventListener('load', resizeCanvas);
+  })
 
   const onRobotLoad = useCallback((robot: URDFRobot, initialJoints: Record<string, number>) => {
     setRobot(robot);
@@ -76,6 +123,8 @@ export default function App() {
     }
   };
 
+  const selectedEnv = environments.find((e) => e.name === environment);
+
   return (
     <div className="relative w-screen h-screen">
       {environment === "Map" && (
@@ -93,7 +142,10 @@ export default function App() {
         <KinovaKortexGen3View onRobotLoad={onRobotLoad} jointValues={jointValues} />
       )}
 
+      <EnvironmentDropdown environment={environment} setEnvironment={setEnvironment} />
+
       <SettingsPanel
+        settings={selectedEnv?.settings}
         sessionName={sessionName}
         setSessionName={setSessionName}
         realtimeHighlighting={realtimeHighlighting}
@@ -110,8 +162,6 @@ export default function App() {
         setSchemaName={setSchemaName}
         geojsonName={geojsonName}
         setGeojsonName={setGeojsonName}
-        environment={environment}
-        setEnvironment={setEnvironment}
         robot={robot}
         jointValues={jointValues}
         onJointChange={onJointChange}
@@ -120,7 +170,7 @@ export default function App() {
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
-            {environment === "map" && (
+            {environment === "Map" && (
               <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
             )}
           </div>

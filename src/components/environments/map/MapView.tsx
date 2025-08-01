@@ -238,7 +238,7 @@ const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
         return added;
       };
 
-      onPointerMoveHandlerRef.current = (e: MapMouseEvent) => {
+      onPointerMoveHandlerRef.current = () => {
         const bounds = map.getBounds();
         const width = bounds.getEast() - bounds.getWest();
         const ZOOM_OUT_THRESHOLD = 0.04; // degrees longitude
@@ -282,7 +282,7 @@ const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
                 setWarningMessage("");
                 setHighlightedId(best.properties?.OBJECTID ?? null);
             } else {
-                setWarningMessage("These aren't the fields you're looking for");
+                setWarningMessage("No farmland regions found");
                 setHighlightedId(null);
             }
         } else {
@@ -333,7 +333,7 @@ const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
         <div className="relative w-full h-full">
           <div ref={containerRef} className="w-full h-full" />
           {warningMessage && (
-            <div className="absolute top-4 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm select-none">
+            <div className="absolute top-30 left-1/2 z-10 w-max -translate-x-1/2 rounded-lg border bg-background/80 p-2 text-sm shadow-lg backdrop-blur-sm select-none">
               {warningMessage}
             </div>
           )}
