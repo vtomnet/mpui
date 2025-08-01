@@ -96,7 +96,75 @@ export default function SettingsPanel({
                   value={sessionName}
                   onChange={(e) => setSessionName(e.target.value)}
                   className="w-[200px]"
-                  placeholder="Optionally set a session name..."
+                  placeholder="Optional session name..."
+                />
+              </div>
+            )}
+            {settings?.model && (
+              <div className="flex items-center justify-between p-2">
+                <label className="text-sm font-medium">Model</label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="size-10 w-[200px] font-normal">
+                      {model}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
+                      {modelOptions.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {option}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+            {settings?.deviceSchema && (
+              <div className="flex items-center justify-between p-2">
+                <label className="text-sm font-medium">Device schema</label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="size-10 w-[200px] font-normal">
+                      {schemaName}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuRadioGroup value={schemaName} onValueChange={setSchemaName}>
+                      {schemaOptions.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {option}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+            {settings?.sendToDevice && (
+              <div className="flex items-center justify-between p-2">
+                <label htmlFor="post-xml-to-endpoint" className="text-sm font-medium">
+                  Send to device
+                </label>
+                <Checkbox
+                  id="post-xml-to-endpoint"
+                  checked={postXml}
+                  onCheckedChange={setPostXml}
+                />
+              </div>
+            )}
+            {settings?.deviceHost && postXml && (
+              <div className="flex items-center justify-between p-2">
+                <label htmlFor="endpoint-url" className="text-sm font-medium">
+                  Device host
+                </label>
+                <Input
+                  id="endpoint-url"
+                  type="text"
+                  value={deviceHost}
+                  onChange={(e) => setDeviceHost(e.target.value)}
+                  className="w-[200px]"
                 />
               </div>
             )}
@@ -155,124 +223,59 @@ export default function SettingsPanel({
                 </ul>
               </div>
             )}
-            {settings?.realtimeHighlighting && (
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="realtime-rendering" className="text-sm font-medium">
-                  Realtime feature highlighting
-                </label>
-                <Checkbox
-                  id="realtime-rendering"
-                  checked={realtimeHighlighting}
-                  onCheckedChange={setRealtimeHighlighting}
-                />
-              </div>
-            )}
-            {settings?.showCachedPolygons && (
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="show-cached-polygons" className="text-sm font-medium">
-                  Show cached polygons (debug)
-                </label>
-                <Checkbox
-                  id="show-cached-polygons"
-                  checked={showCachedPolygons}
-                  onCheckedChange={setShowCachedPolygons}
-                />
-              </div>
-            )}
-            {settings?.sendToDevice && (
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="post-xml-to-endpoint" className="text-sm font-medium">
-                  Send to device
-                </label>
-                <Checkbox
-                  id="post-xml-to-endpoint"
-                  checked={postXml}
-                  onCheckedChange={setPostXml}
-                />
-              </div>
-            )}
-            {settings?.deviceHost && (
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="endpoint-url" className="text-sm font-medium">
-                  Device host
-                </label>
-                <Input
-                  id="endpoint-url"
-                  type="text"
-                  value={deviceHost}
-                  onChange={(e) => setDeviceHost(e.target.value)}
-                  className="w-[200px]"
-                  disabled={!postXml}
-                />
-              </div>
-            )}
-            {settings?.model && (
-              <div className="flex items-center justify-between p-2">
-                <label className="text-sm font-medium">Model</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="size-10 w-[200px] font-normal">
-                      {model}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
-                      {modelOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {option}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
-            {settings?.deviceSchema && (
-              <div className="flex items-center justify-between p-2">
-                <label className="text-sm font-medium">Device schema</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="size-10 w-[200px] font-normal">
-                      {schemaName}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    <DropdownMenuRadioGroup value={schemaName} onValueChange={setSchemaName}>
-                      {schemaOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {option}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
-            {settings?.geojsonFile && (
-              <div className="flex items-center justify-between p-2">
-                <label className="text-sm font-medium">GeoJSON File</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="size-10 w-[200px] font-normal">
-                      {geojsonOptions.find((o) => o.value === geojsonName)?.label}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    <DropdownMenuRadioGroup
-                      value={geojsonName}
-                      onValueChange={setGeojsonName}
-                    >
-                      {geojsonOptions.map((option) => (
-                        <DropdownMenuRadioItem
-                          key={option.value}
-                          value={option.value}
+            {(settings?.realtimeHighlighting || settings?.showCachedPolygons || settings?.geojsonFile) && (
+              <div className="border-t border-border my-4 py-4 px-2 space-y-4">
+                {settings?.realtimeHighlighting && (
+                  <div className="flex items-center justify-between p-2">
+                    <label htmlFor="realtime-rendering" className="text-sm font-medium">
+                      Realtime feature highlighting
+                    </label>
+                    <Checkbox
+                      id="realtime-rendering"
+                      checked={realtimeHighlighting}
+                      onCheckedChange={setRealtimeHighlighting}
+                    />
+                  </div>
+                )}
+                {settings?.showCachedPolygons && (
+                  <div className="flex items-center justify-between p-2">
+                    <label htmlFor="show-cached-polygons" className="text-sm font-medium">
+                      Show cached polygons (debug)
+                    </label>
+                    <Checkbox
+                      id="show-cached-polygons"
+                      checked={showCachedPolygons}
+                      onCheckedChange={setShowCachedPolygons}
+                    />
+                  </div>
+                )}
+                {settings?.geojsonFile && (
+                  <div className="flex items-center justify-between p-2">
+                    <label className="text-sm font-medium">GeoJSON File</label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="size-10 w-[200px] font-normal">
+                          {geojsonOptions.find((o) => o.value === geojsonName)?.label}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[200px]">
+                        <DropdownMenuRadioGroup
+                          value={geojsonName}
+                          onValueChange={setGeojsonName}
                         >
-                          {option.label}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                          {geojsonOptions.map((option) => (
+                            <DropdownMenuRadioItem
+                              key={option.value}
+                              value={option.value}
+                            >
+                              {option.label}
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
               </div>
             )}
           </div>
