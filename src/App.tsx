@@ -128,8 +128,14 @@ export default function App() {
           initialCenter={initialCenter}
         />
       )}
-      {environment === "Kinova Kortex Gen3 6DOF" && (
-        <KinovaKortexGen3View onRobotLoad={onRobotLoad} jointValues={jointValues} />
+      {selectedEnv?.urdf && selectedEnv.packages && (
+        <KinovaKortexGen3View
+          onRobotLoad={onRobotLoad}
+          jointValues={jointValues}
+          urdf={selectedEnv.urdf}
+          packages={selectedEnv.packages}
+          initialJoints={selectedEnv.initialJoints}
+        />
       )}
 
       <EnvironmentDropdown environment={environment} setEnvironment={setEnvironment} />

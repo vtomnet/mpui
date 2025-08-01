@@ -20,6 +20,9 @@ export interface Environment {
     schemaName?: string;
     geojsonName?: string;
   };
+  urdf?: string;
+  packages?: Record<string, string>;
+  initialJoints?: Record<string, number>;
 }
 
 export const environments: Environment[] = [
@@ -75,6 +78,39 @@ export const environments: Environment[] = [
       postXml: false,
       model: "gemini-2.5-flash",
       schemaName: "kinova_gen3_6dof",
+    },
+    urdf: "/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf",
+    packages: {
+      'kortex_description': '/models/kinova_kortex_gen3_6dof/kortex_description'
+    },
+    initialJoints: {
+      'joint_1': 0,
+      'joint_2': 120,
+      'joint_3': 135,
+      'joint_4': 0,
+      'joint_5': -105,
+      'joint_6': 90
+    }
+  },
+  {
+    name: "Boston Dynamics Spot (beta)",
+    settings: {
+      sessionName: true,
+      model: true,
+      deviceSchema: true,
+      sendToDevice: true,
+      deviceHost: true,
+      kinova: true,
+    },
+    presets: {
+      postXml: false,
+      model: "gemini-2.5-flash",
+      schemaName: "bd_spot",
+    },
+    urdf: "/models/boston_dynamics_spot/spot_sim_description/urdf/spot.urdf",
+    packages: {
+      'velodyne_description': '/models/boston_dynamics_spot/velodyne_description',
+      'spot_sim_description': '/models/boston_dynamics_spot/spot_sim_description'
     },
   },
 ];

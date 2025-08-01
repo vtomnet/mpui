@@ -6,9 +6,12 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 interface Props {
     onRobotLoad: (robot: URDFRobot, initialJoints: Record<string, number>) => void;
     jointValues: Record<string, number>;
+    urdf: string;
+    packages: Record<string, string>;
+    initialJoints?: Record<string, number>;
 }
 
-const KinovaKortexGen3View = ({ onRobotLoad, jointValues }: Props) => {
+const KinovaKortexGen3View = ({ onRobotLoad, jointValues, urdf, packages, initialJoints }: Props) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const robotRef = useRef<URDFRobot | null>(null);
 
@@ -55,12 +58,10 @@ const KinovaKortexGen3View = ({ onRobotLoad, jointValues }: Props) => {
 
         // URDF Loader
         const loader = new URDFLoader();
-        loader.packages = {
-            'kortex_description': '/models/kinova_kortex_gen3_6dof/kortex_description'
-        };
+        loader.packages = packages;
 
         loader.load(
-            '/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf',
+            urdf,
             (robot: URDFRobot) => {
                 console.log(robot);
                 robot.rotation.x = -Math.PI / 2;
@@ -68,12 +69,11 @@ const KinovaKortexGen3View = ({ onRobotLoad, jointValues }: Props) => {
                     c.castShadow = true;
                 });
 
-                robot.setJointValue('joint_1', 0 * Math.PI / 180);
-                robot.setJointValue('joint_2', 120 * Math.PI / 180);
-                robot.setJointValue('joint_3', 135 * Math.PI / 180);
-                robot.setJointValue('joint_4', 0 * Math.PI / 180);
-                robot.setJointValue('joint_5', -105 * Math.PI / 180);
-                robot.setJointValue('joint_6', 90 * Math.PI / 180);
+                if (initialJoints) {
+                    for (const [name, value] of Object.entries(initialJoints)) {
+                        robot.setJointValue(name, value * Math.PI / 180);
+                    }
+                }
 
                 scene.add(robot);
                 robotRef.current = robot;
@@ -116,7 +116,7 @@ const KinovaKortexGen3View = ({ onRobotLoad, jointValues }: Props) => {
               currentMount.removeChild(renderer.domElement);
             }
         };
-    }, [onRobotLoad]);
+    }, [onRobotLoad, urdf, packages, initialJoints]);
 
     return (
         <div className="w-full h-full relative">
