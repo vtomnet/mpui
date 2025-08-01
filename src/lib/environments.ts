@@ -45,6 +45,23 @@ export const environments: Environment[] = [
     },
   },
   {
+    name: "Google Maps (beta)",
+    settings: {
+      sessionName: true,
+      model: true,
+      deviceSchema: true,
+      sendToDevice: true,
+      deviceHost: true,
+      geojsonFile: true,
+    },
+    presets: {
+      postXml: false,
+      model: "gemini-2.5-flash",
+      schemaName: "gazebo_minimal",
+      geojsonName: "None",
+    },
+  },
+  {
     name: "Kinova Kortex Gen3 6DOF",
     settings: {
       sessionName: true,

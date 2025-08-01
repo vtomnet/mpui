@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { URDFRobot } from "urdf-loader";
 import MapView, { MapActions } from "@/components/environments/map/MapView";
+import GoogleMapView from "@/components/environments/google-map/GoogleMapView";
 import KinovaKortexGen3View from "@/components/environments/kinova-kortex-gen3-6dof/KinovaKortexGen3View";
 import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
@@ -127,7 +128,7 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      {environment === "Map" && (
+      {environment === "Map (beta)" && (
         <MapView
           ref={mapRef}
           setInitialCenter={setInitialCenter}
@@ -137,6 +138,13 @@ export default function App() {
         >
           <PathPlan xml={taskXml}/>
         </MapView>
+      )}
+      {environment === "Google Maps (beta)" && (
+        <GoogleMapView
+          ref={mapRef}
+          setInitialCenter={setInitialCenter}
+          initialCenter={initialCenter}
+        />
       )}
       {environment === "Kinova Kortex Gen3 6DOF" && (
         <KinovaKortexGen3View onRobotLoad={onRobotLoad} jointValues={jointValues} />
@@ -170,7 +178,7 @@ export default function App() {
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
-            {environment === "Map" && (
+            {(environment === "Map (beta)" || environment === "Google Maps (beta)") && (
               <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
             )}
           </div>
