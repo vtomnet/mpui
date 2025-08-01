@@ -24,7 +24,7 @@ export interface Environment {
 
 export const environments: Environment[] = [
   {
-    name: "Map",
+    name: "Map (beta)",
     settings: {
       sessionName: true,
       model: true,
