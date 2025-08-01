@@ -66,24 +66,6 @@ export default function App() {
     }
   }, [fetchError]);
 
-  function resizeCanvas() {
-    const vh = window.innerHeight;
-    const vw = window.innerWidth;
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      canvas.style.height = `${vh}px`;
-      canvas.style.width = `${vw}px`;
-      canvas.height = vh;
-      canvas.width = vw;
-    }
-  }
-
-  useEffect(() => {
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('orientationchange', resizeCanvas);
-    window.addEventListener('load', resizeCanvas);
-  })
-
   const onRobotLoad = useCallback((robot: URDFRobot, initialJoints: Record<string, number>) => {
     setRobot(robot);
     setJointValues(initialJoints);
