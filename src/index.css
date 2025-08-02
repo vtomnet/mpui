@@ -152,14 +152,15 @@
 }
 
 @layer utilities {
-  .glass, .glass:focus-visible {
+  .glass, .glass:focus-visible, .glass:hover {
     background-color: rgba(50, 50, 50, 0.3);
     backdrop-filter: blur(10px);
     border: ridge rgba(50, 50, 50, 0.2);
     border-width: thin;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     color: white;
-    border-radius: calc(infinity * 1px);
+    /* border-radius: calc(infinity * 1px); */
+    border-radius: 24px;
   }
 
   .glass [data-radix-collection-item]:focus {

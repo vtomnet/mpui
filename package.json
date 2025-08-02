@@ -38,6 +38,7 @@
     "@types/geojson": "^7946.0.16",
     "@types/maplibre-gl": "^1.13.2",
     "@types/three": "^0.178.1",
+    "@vis.gl/react-google-maps": "^1.5.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",

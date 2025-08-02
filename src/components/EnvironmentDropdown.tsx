@@ -18,11 +18,11 @@ import {
       <div className="fixed top-4 left-4 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[240px] font-normal h-18 text-lg glass">
+            <Button variant="outline" className="w-[240px] font-normal h-18 text-lg glass" style={{ borderRadius: '24px' }}>
               {environment}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-[240px] glass">
+          <DropdownMenuContent align="start" className="w-[240px] glass rounded" style={{ borderRadius: '24px' }}>
             <DropdownMenuRadioGroup
               value={environment}
               onValueChange={setEnvironment}
