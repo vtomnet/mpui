@@ -24,12 +24,13 @@ const InnerMap = forwardRef<MapActions, PropsWithChildren<{
             }
         },
     }));
-    
+
     return (
         <div className="relative w-full h-full">
             <Map
                 defaultCenter={{ lng: initialCenter[0], lat: initialCenter[1] }}
-                defaultZoom={13}
+                defaultZoom={14}
+                defaultTilt={45}
                 mapTypeId={'hybrid'}
                 className="w-full h-full"
                 gestureHandling={'greedy'}

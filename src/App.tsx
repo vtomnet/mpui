@@ -18,7 +18,7 @@ export default function App() {
   const [model, setModel] = useState<string>("gemini-2.5-flash");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
   const [geojsonName, setGeojsonName] = useState<string>("None");
-  const [environment, setEnvironment] = useState<string>("Google Maps (beta)");
+  const [environment, setEnvironment] = useState<string>("Google Maps");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export default function App() {
       });
 
       const sequenceTaskIds = Array.from(xmlDoc.querySelectorAll("ActionSequence Sequence TaskID")).map(el => el.textContent);
-      
+
       let currentJointValues = {...jointValues};
       let delay = 0;
 
@@ -108,7 +108,7 @@ export default function App() {
           const goToPosition = task.querySelector("goToPosition");
           if (goToPosition) {
               const movementType = goToPosition.querySelector('movement')?.textContent;
-              
+
               const jointMap: Record<string, string> = {
                   'joint_1': 'x', 'joint_2': 'y', 'joint_3': 'z',
                   'joint_4': 'roll', 'joint_5': 'pitch', 'joint_6': 'yaw',
@@ -180,7 +180,7 @@ export default function App() {
           <PathPlan xml={taskXml}/>
         </MapView>
       )}
-      {environment === "Google Maps (beta)" && (
+      {environment === "Google Maps" && (
         <GoogleMapView
           ref={mapRef}
           setInitialCenter={setInitialCenter}
@@ -225,7 +225,7 @@ export default function App() {
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">
           <div className="flex flex-col gap-4 pointer-events-auto">
-            {(environment === "Map (beta)" || environment === "Google Maps (beta)") && (
+            {(environment === "Map (beta)" || environment === "Google Maps") && (
               <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
             )}
           </div>
