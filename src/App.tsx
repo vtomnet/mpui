@@ -18,7 +18,7 @@ export default function App() {
   const [model, setModel] = useState<string>("gemini-2.5-flash");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
   const [geojsonName, setGeojsonName] = useState<string>("None");
-  const [environment, setEnvironment] = useState<string>("Kinova Kortex Gen3 6DOF");
+  const [environment, setEnvironment] = useState<string>("Google Maps (beta)");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
