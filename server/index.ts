@@ -7,6 +7,7 @@ import fs from 'fs';
 import { fileTypeFromFile } from 'file-type';
 import { getResponse, modelList, schemaList, geojsonList } from '../lib/llm.js';
 import path from 'path';
+import util from 'util';
 import { createServer as createViteServer } from 'vite';
 
 async function createServer() {
@@ -16,6 +17,20 @@ async function createServer() {
 
   const app = express();
   app.use(cors());
+
+  app.use((req, res, next) => {
+    const start = Date.now();
+
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      console.log(
+        `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ` +
+        `Status: ${res.statusCode} - ${duration}ms`
+      );
+    });
+
+    next();
+  });
 
   const openai = new OpenAI();
   const PORT = process.env.PORT || 9001;
