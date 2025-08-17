@@ -16,6 +16,7 @@ import { Environment } from "@/lib/environments";
 
 interface Props {
   settings: Environment['settings'] | undefined;
+  environment: string;
   sessionName: string;
   setSessionName: (value: string) => void;
   realtimeHighlighting: boolean;
@@ -39,6 +40,7 @@ interface Props {
 
 export default function SettingsPanel({
   settings,
+  environment,
   sessionName,
   setSessionName,
   realtimeHighlighting,
@@ -96,7 +98,7 @@ export default function SettingsPanel({
                   value={sessionName}
                   onChange={(e) => setSessionName(e.target.value)}
                   className="w-[200px]"
-                  placeholder="Optional session name..."
+                  placeholder="Optional"
                 />
               </div>
             )}

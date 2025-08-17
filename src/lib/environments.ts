@@ -48,7 +48,7 @@ export const environments: Environment[] = [
     },
   },
   {
-    name: "Google Maps (beta)",
+    name: "Google Maps",
     settings: {
       sessionName: true,
       model: true,

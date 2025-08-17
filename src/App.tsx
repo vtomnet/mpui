@@ -201,6 +201,7 @@ export default function App() {
 
       <SettingsPanel
         settings={selectedEnv?.settings}
+        environment={environment}
         sessionName={sessionName}
         setSessionName={setSessionName}
         realtimeHighlighting={realtimeHighlighting}

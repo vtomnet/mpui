@@ -12,3 +12,5 @@
 .aider*
 *.pem
 logs
+
+dist
