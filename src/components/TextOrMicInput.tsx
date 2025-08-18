@@ -124,21 +124,24 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
     setLoadingSource("text");
     setText("");
 
+    const payload = {
+      text: theText,
+      schemaName: schemaName,
+      geojsonName: geojsonName || undefined,
+      model,
+      lon: initialCenter?.[0],
+      lat: initialCenter?.[1],
+    };
+
     try {
       const res = await fetch("/api/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: theText,
-          schemaName: schemaName,
-          geojsonName: geojsonName || undefined,
-          model,
-          lon: initialCenter?.[0],
-          lat: initialCenter?.[1],
-        }),
+        body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
-        throw new Error(`Calling /api/text failed: ${res.statusText}`)
+        throw new Error(`Calling /api/text failed: ${res.statusText}, `)
       }
 
       const data = await res.json();

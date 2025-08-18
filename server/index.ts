@@ -44,13 +44,16 @@ async function createServer() {
     try {
       const { text, schemaName, geojsonName, model, lon, lat } = req.body;
       if (!model || !modelList.includes(model)) {
-        return res.status(401).json({ error: "Unrecognized or missing model" });
+        console.error(`Request error: Unrecognized or missing model: ${model}`);
+        return res.status(422).json({ error: "Unrecognized or missing model" });
       }
       if (!schemaName || !schemaList.includes(schemaName)) {
-        return res.status(402).json({ error: "Unrecognized or missing schema" });
+        console.error(`Request error: Unrecognized or missing schema: ${schemaName}`);
+        return res.status(422).json({ error: "Unrecognized or missing schema" });
       }
       if (!geojsonName || !geojsonList.includes(geojsonName)) {
-        return res.status(403).json({ error: "Unrecognized or missing geojson" });
+        console.error(`Request error: Unrecognized or missing geojson: ${geojsonName}`);
+        return res.status(422).json({ error: "Unrecognized or missing geojson" });
       }
 
       const response = await getResponse(text, schemaName, geojsonName, model);
