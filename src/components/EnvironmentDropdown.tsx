@@ -14,20 +14,28 @@ import {
   }
 
   export default function EnvironmentDropdown({ environment, setEnvironment }: Props) {
+    const sortedEnvironments = [...environments].sort((a, b) => {
+      const aIsGoogle = a.name.includes("Google Maps");
+      const bIsGoogle = b.name.includes("Google Maps");
+      if (aIsGoogle && !bIsGoogle) return -1;
+      if (!aIsGoogle && bIsGoogle) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
     return (
-      <div className="fixed top-4 left-4 z-10">
+      <div className="fixed top-4 left-4 right-20 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[240px] font-normal h-18 text-lg glass" style={{ borderRadius: '24px' }}>
+            <Button variant="outline" className="w-full font-normal h-18 text-lg glass" style={{ borderRadius: '24px' }}>
               {environment}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-[240px] glass rounded" style={{ borderRadius: '24px' }}>
+          <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] glass rounded" style={{ borderRadius: '24px' }}>
             <DropdownMenuRadioGroup
               value={environment}
               onValueChange={setEnvironment}
             >
-              {environments.map((env) => (
+              {sortedEnvironments.map((env) => (
                 <DropdownMenuRadioItem key={env.name} value={env.name}>
                   {env.name}
                 </DropdownMenuRadioItem>
