@@ -15,7 +15,7 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(false);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
-  const [model, setModel] = useState<string>("gemini-2.5-flash");
+  const [model, setModel] = useState<string>("gpt-5/medium");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
   const [geojsonName, setGeojsonName] = useState<string>("None");
   const [environment, setEnvironment] = useState<string>("Google Maps");
