@@ -93,29 +93,10 @@ export default function SettingsPanel({
       {() => (
         <>
           <div className="flex-1 overflow-y-auto">
-            {settings?.sessionName && (
-              <div className="flex items-center justify-between p-2">
-                <label htmlFor="session-name" className="text-sm font-medium">
-                  Session name
-                </label>
-                <Input
-                  id="session-name"
-                  type="text"
-                  value={sessionName}
-                  onChange={(e) => setSessionName(e.target.value)}
-                  className="w-[200px]"
-                  placeholder="Optional"
-                />
-              </div>
-            )}
             {settings?.model && (
               <div className="flex items-start justify-between p-2">
                 <label className="text-sm font-medium">Model</label>
                 <div className="w-[200px]">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">Fast/Cheap</span>
-                    <span className="text-xs text-muted-foreground">Smart</span>
-                  </div>
                   <Slider
                     value={[sliderValue]}
                     onValueChange={(value) =>
@@ -124,8 +105,10 @@ export default function SettingsPanel({
                     max={sliderModelOptions.length - 1}
                     step={1}
                   />
-                  <div className="text-center text-xs mt-1">
-                    Selected: {model}
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs text-muted-foreground mt-1">Fast</span>
+                    <span className="text-xs text-center mt-1 italic">{model}</span>
+                    <span className="text-xs text-muted-foreground mt-1">Smart</span>
                   </div>
                 </div>
               </div>
@@ -149,6 +132,21 @@ export default function SettingsPanel({
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </div>
+            )}
+            {settings?.sessionName && (
+              <div className="flex items-center justify-between p-2">
+                <label htmlFor="session-name" className="text-sm font-medium">
+                  Session name
+                </label>
+                <Input
+                  id="session-name"
+                  type="text"
+                  value={sessionName}
+                  onChange={(e) => setSessionName(e.target.value)}
+                  className="w-[200px]"
+                  placeholder="Optional"
+                />
               </div>
             )}
             {settings?.sendToDevice && (
