@@ -109,20 +109,24 @@ export default function SettingsPanel({
               </div>
             )}
             {settings?.model && (
-              <div className="p-2 space-y-2">
+              <div className="flex items-start justify-between p-2">
                 <label className="text-sm font-medium">Model</label>
-                <Slider
-                  value={[sliderValue]}
-                  onValueChange={(value) =>
-                    setModel(sliderModelOptions[value[0]])
-                  }
-                  max={sliderModelOptions.length - 1}
-                  step={1}
-                />
-                <div className="flex justify-between">
-                  <span className="text-xs text-muted-foreground">Fast/Cheap</span>
-                  <span className="text-xs">{model}</span>
-                  <span className="text-xs text-muted-foreground">Smart</span>
+                <div className="w-[200px]">
+                  <Slider
+                    value={[sliderValue]}
+                    onValueChange={(value) =>
+                      setModel(sliderModelOptions[value[0]])
+                    }
+                    max={sliderModelOptions.length - 1}
+                    step={1}
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-muted-foreground">Fast/Cheap</span>
+                    <span className="text-xs text-muted-foreground">Smart</span>
+                  </div>
+                  <div className="text-center text-xs mt-1">
+                    Selected: {model}
+                  </div>
                 </div>
               </div>
             )}
