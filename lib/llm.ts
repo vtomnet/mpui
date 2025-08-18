@@ -18,14 +18,14 @@ async function getFile(filename: string) {
 }
 
 export const models = [
-  { name: "gpt-5", reasoning: "high" },
-  { name: "gpt-5", reasoning: "medium" },
-  { name: "gpt-5", reasoning: "low" },
-  { name: "gpt-5", reasoning: "minimal" },
-  { name: "gpt-5-mini", reasoning: "high" },
-  { name: "gpt-5-mini", reasoning: "medium" },
-  { name: "gpt-5-mini", reasoning: "low" },
-  { name: "gpt-5-mini", reasoning: "minimal" },
+  { name: "gpt-5", reasoning: "high", displayName: "GPT-5 (high)" },
+  { name: "gpt-5", reasoning: "medium", displayName: "GPT-5 (medium)" },
+  { name: "gpt-5", reasoning: "low", displayName: "GPT-5 (low)" },
+  { name: "gpt-5", reasoning: "minimal", displayName: "GPT-5 (minimal)" },
+  { name: "gpt-5-mini", reasoning: "high", displayName: "GPT-5 mini (high)" },
+  { name: "gpt-5-mini", reasoning: "medium", displayName: "GPT-5 mini (medium)" },
+  { name: "gpt-5-mini", reasoning: "low", displayName: "GPT-5 mini (low)" },
+  { name: "gpt-5-mini", reasoning: "minimal", displayName: "GPT-5 mini (minimal)" },
 ];
 export const modelList = models.map(m => `${m.name}/${m.reasoning}`);
 

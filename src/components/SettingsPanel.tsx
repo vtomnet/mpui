@@ -63,13 +63,14 @@ export default function SettingsPanel({
   onJointChange,
 }: Props) {
   const sliderModelOptions = [
-    "gpt-5-mini/low",
-    "gpt-5-mini/high",
-    "gpt-5/low",
-    "gpt-5/high",
+    { id: "gpt-5-mini/low", displayName: "GPT-5 mini (low)" },
+    { id: "gpt-5-mini/high", displayName: "GPT-5 mini (high)" },
+    { id: "gpt-5/low", displayName: "GPT-5 (low)" },
+    { id: "gpt-5/high", displayName: "GPT-5 (high)" },
   ];
-  const modelValue = sliderModelOptions.indexOf(model);
+  const modelValue = sliderModelOptions.findIndex(option => option.id === model);
   const sliderValue = modelValue === -1 ? 0 : modelValue;
+  const currentModelDisplayName = sliderModelOptions.find(option => option.id === model)?.displayName || model;
   const schemaOptions = [
     "bd_spot",
     "clearpath_husky",
@@ -100,14 +101,14 @@ export default function SettingsPanel({
                   <Slider
                     value={[sliderValue]}
                     onValueChange={(value) =>
-                      setModel(sliderModelOptions[value[0]])
+                      setModel(sliderModelOptions[value[0]].id)
                     }
                     max={sliderModelOptions.length - 1}
                     step={1}
                   />
                   <div className="flex justify-between mb-1">
                     <span className="text-xs text-muted-foreground mt-1">Fast</span>
-                    <span className="text-xs text-center mt-1 italic">{model}</span>
+                    <span className="text-xs text-center mt-1 italic">{currentModelDisplayName}</span>
                     <span className="text-xs text-muted-foreground mt-1">Smart</span>
                   </div>
                 </div>
