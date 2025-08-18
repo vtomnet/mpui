@@ -84,6 +84,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
                   if (data.result) onFinalResult(data.result);
                   if (data.error) {
                       console.error("Server-side error:", data.error);
+                      setFetchError(data.error);
                       onSttResult(`Error: ${data.error}`);
                   }
                 } catch (e) {
@@ -92,9 +93,11 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
               }
             }
 
-          } catch (error) {
+          } catch (error: any) {
             console.error(`Error uploading audio: ${error}`);
-            onSttResult("An error occurred. Please try again.");
+            const message = "An error occurred during voice processing. Please try again.";
+            setFetchError(message);
+            onSttResult(message);
           } finally {
             setLoadingSource(null);
             mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -140,14 +143,16 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error(`Calling /api/text failed: ${res.statusText}, `)
+        throw new Error(data.error || `HTTP error! status: ${res.status}`);
       }
 
-      const data = await res.json();
       onFinalResult(data.result);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error submitting text: ${error}`);
+      setFetchError(error.message || "An error occurred. Please try again.");
     } finally {
       setLoadingSource(null);
     }

@@ -150,6 +150,9 @@ async function createServer() {
 
         // 2. Get the full response and send it
         const response = await getResponse(transcript.text, schemaName, geojsonName, model);
+        if (response === undefined) {
+          throw new Error("Failed to get response from LLM");
+        }
         fs.appendFileSync(
           path.join('logs', 'requests.log'),
           JSON.stringify({
