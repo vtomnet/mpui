@@ -18,10 +18,14 @@ async function getFile(filename: string) {
 }
 
 export const modelList = [
-  "o3/low",
-  "o4-mini/low",
-  "gpt-4.1",
-  "gpt-4.1-nano",
+  "gpt-5/high",
+  "gpt-5/medium",
+  "gpt-5/low",
+  "gpt-5/minimal",
+  "gpt-5-mini/high",
+  "gpt-5-mini/medium",
+  "gpt-5-mini/low",
+  "gpt-5-mini/minimal",
 ];
 
 export const schemaList = [
