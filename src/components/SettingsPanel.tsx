@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Environment } from "@/lib/environments";
 
 interface Props {
@@ -61,9 +62,14 @@ export default function SettingsPanel({
   jointValues,
   onJointChange,
 }: Props) {
-  const modelOptions = [
-    "gemini-2.5-flash",
+  const sliderModelOptions = [
+    "gpt-5-mini/low",
+    "gpt-5-mini/high",
+    "gpt-5/low",
+    "gpt-5/high",
   ];
+  const modelValue = sliderModelOptions.indexOf(model);
+  const sliderValue = modelValue === -1 ? 0 : modelValue;
   const schemaOptions = [
     "bd_spot",
     "clearpath_husky",
@@ -103,24 +109,21 @@ export default function SettingsPanel({
               </div>
             )}
             {settings?.model && (
-              <div className="flex items-center justify-between p-2">
+              <div className="p-2 space-y-2">
                 <label className="text-sm font-medium">Model</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="size-10 w-[200px] font-normal">
-                      {model}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
-                      {modelOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {option}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Slider
+                  value={[sliderValue]}
+                  onValueChange={(value) =>
+                    setModel(sliderModelOptions[value[0]])
+                  }
+                  max={sliderModelOptions.length - 1}
+                  step={1}
+                />
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">Fast/Cheap</span>
+                  <span className="text-xs">{model}</span>
+                  <span className="text-xs text-muted-foreground">Smart</span>
+                </div>
               </div>
             )}
             {settings?.deviceSchema && (

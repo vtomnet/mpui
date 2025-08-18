@@ -17,16 +17,17 @@ async function getFile(filename: string) {
   return file;
 }
 
-export const modelList = [
-  "gpt-5/high",
-  "gpt-5/medium",
-  "gpt-5/low",
-  "gpt-5/minimal",
-  "gpt-5-mini/high",
-  "gpt-5-mini/medium",
-  "gpt-5-mini/low",
-  "gpt-5-mini/minimal",
+export const models = [
+  { name: "gpt-5", reasoning: "high" },
+  { name: "gpt-5", reasoning: "medium" },
+  { name: "gpt-5", reasoning: "low" },
+  { name: "gpt-5", reasoning: "minimal" },
+  { name: "gpt-5-mini", reasoning: "high" },
+  { name: "gpt-5-mini", reasoning: "medium" },
+  { name: "gpt-5-mini", reasoning: "low" },
+  { name: "gpt-5-mini", reasoning: "minimal" },
 ];
+export const modelList = models.map(m => `${m.name}/${m.reasoning}`);
 
 export const schemaList = [
   "bd_spot",
