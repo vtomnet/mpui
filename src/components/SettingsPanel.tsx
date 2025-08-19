@@ -68,6 +68,10 @@ export default function SettingsPanel({
     if (storedDeviceHost) {
       setDeviceHost(storedDeviceHost);
     }
+    const storedModel = localStorage.getItem("model");
+    if (storedModel) {
+      setModel(storedModel);
+    }
   }, []);
 
   const sliderModelOptions = [
@@ -106,9 +110,11 @@ export default function SettingsPanel({
                 <div className="w-[200px]">
                   <Slider
                     value={[sliderValue]}
-                    onValueChange={(value) =>
-                      setModel(sliderModelOptions[value[0]].id)
-                    }
+                    onValueChange={(value) => {
+                      const newModel = sliderModelOptions[value[0]].id;
+                      setModel(newModel);
+                      localStorage.setItem("model", newModel);
+                    }}
                     max={sliderModelOptions.length - 1}
                     step={1}
                   />

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,6 +15,13 @@ import {
   }
 
   export default function EnvironmentDropdown({ environment, setEnvironment }: Props) {
+    useEffect(() => {
+      const storedEnvironment = localStorage.getItem("environment");
+      if (storedEnvironment) {
+        setEnvironment(storedEnvironment);
+      }
+    }, []);
+
     const sortedEnvironments = [...environments].sort((a, b) => {
       const aIsGoogle = a.name.includes("Google Maps");
       const bIsGoogle = b.name.includes("Google Maps");
@@ -32,7 +40,10 @@ import {
           <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] glass rounded" style={{ borderRadius: '24px' }}>
             <DropdownMenuRadioGroup
               value={environment}
-              onValueChange={setEnvironment}
+              onValueChange={(value) => {
+                setEnvironment(value);
+                localStorage.setItem("environment", value);
+              }}
             >
               {sortedEnvironments.map((env) => (
                 <DropdownMenuRadioItem key={env.name} value={env.name}>
