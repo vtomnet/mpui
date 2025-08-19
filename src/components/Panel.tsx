@@ -44,7 +44,7 @@ export default function Panel({ title, trigger, children, triggerClassName, isOp
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-20 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-background w-full max-w-2xl h-full max-h-[80vh] rounded-lg p-4 flex flex-col shadow-2xl">
             <div className="flex justify-between items-center mb-4 pb-4 border-b">
               <h2 className="text-xl font-bold">{title}</h2>
