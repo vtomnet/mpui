@@ -32,10 +32,7 @@ import {
           <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] glass rounded" style={{ borderRadius: '24px' }}>
             <DropdownMenuRadioGroup
               value={environment}
-              onValueChange={(value) => {
-                setEnvironment(value);
-                localStorage.setItem("environment", value);
-              }}
+              onValueChange={setEnvironment}
             >
               {sortedEnvironments.map((env) => (
                 <DropdownMenuRadioItem key={env.name} value={env.name}>

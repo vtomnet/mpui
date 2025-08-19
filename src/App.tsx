@@ -28,15 +28,12 @@ export default function App() {
   const [sessionName, setSessionName] = useState<string>("");
 
   const mapRef = useRef<MapActions>(null);
-  const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
+  const handleSetEnvironment = (newEnvironment: string) => {
+    setEnvironment(newEnvironment);
+    localStorage.setItem("environment", newEnvironment);
 
-    const selectedEnv = environments.find((e) => e.name === environment);
+    const selectedEnv = environments.find((e) => e.name === newEnvironment);
     if (selectedEnv) {
       Object.entries(selectedEnv.presets).forEach(([key, value]) => {
         switch (key) {
@@ -49,9 +46,12 @@ export default function App() {
           case "postXml":
             setPostXml(value as boolean);
             break;
-          case "model":
-            setModel(value as string);
+          case "model": {
+            const newModel = value as string;
+            setModel(newModel);
+            localStorage.setItem("model", newModel);
             break;
+          }
           case "schemaName":
             setSchemaName(value as string);
             break;
@@ -61,7 +61,7 @@ export default function App() {
         }
       });
     }
-  }, [environment]);
+  };
 
   useEffect(() => {
     if (fetchError) {
@@ -205,7 +205,7 @@ export default function App() {
 
       <div className="fixed top-4 left-4 right-4 z-10 flex items-center gap-4">
         <div className="flex-grow">
-          <EnvironmentDropdown environment={environment} setEnvironment={setEnvironment} />
+          <EnvironmentDropdown environment={environment} setEnvironment={handleSetEnvironment} />
         </div>
         <SettingsPanel
         settings={selectedEnv?.settings}
