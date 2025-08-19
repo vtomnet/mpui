@@ -78,8 +78,7 @@ export default function SettingsPanel({
     "gazebo_minimal"
   ];
   const geojsonOptions = [
-    { value: "", label: "None" },
-    { value: "None", label: "None" },
+    { value: "none", label: "none" },
     { value: "reza", label: "reza" },
     { value: "test", label: "test" },
     { value: "ucm_graph40", label: "ucm_graph40" },
