@@ -46,7 +46,7 @@ export const geojsonList = [
 export async function getResponse(
   input: string,
   schemaName: string,
-  geojsonName: string | null,
+  geojsonName: string | null = "none",
   model: string,
 ) {
   if (!schemaList.includes(schemaName)) {
