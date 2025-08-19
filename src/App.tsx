@@ -97,10 +97,6 @@ export default function App() {
     }
   }, [fetchError]);
 
-  useEffect(() => {
-    setInterimText("The quick brown fox jumps over the lazy dog. Foo bar baz fizz buzz fuzz bizz bozz fuzz.");
-  }, []);
-
   const onRobotLoad = useCallback((robot: URDFRobot, initialJoints: Record<string, number>) => {
     setRobot(robot);
     setJointValues(initialJoints);
