@@ -132,7 +132,13 @@ export default function SettingsPanel({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-[200px]">
-                    <DropdownMenuRadioGroup value={schemaName} onValueChange={setSchemaName}>
+                    <DropdownMenuRadioGroup
+                      value={schemaName}
+                      onValueChange={(value) => {
+                        setSchemaName(value);
+                        localStorage.setItem("schemaName", value);
+                      }}
+                    >
                       {schemaOptions.map((option) => (
                         <DropdownMenuRadioItem key={option} value={option}>
                           {option}
@@ -280,7 +286,10 @@ export default function SettingsPanel({
                       <DropdownMenuContent align="end" className="w-[200px]">
                         <DropdownMenuRadioGroup
                           value={geojsonName}
-                          onValueChange={setGeojsonName}
+                          onValueChange={(value) => {
+                            setGeojsonName(value);
+                            localStorage.setItem("geojsonName", value);
+                          }}
                         >
                           {geojsonOptions.map((option) => (
                             <DropdownMenuRadioItem

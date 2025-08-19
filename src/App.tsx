@@ -16,8 +16,8 @@ export default function App() {
   const [postXml, setPostXml] = useState<boolean>(false);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
   const [model, setModel] = useState<string>(localStorage.getItem("model") || "gpt-5/medium");
-  const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
-  const [geojsonName, setGeojsonName] = useState<string>("none");
+  const [schemaName, setSchemaName] = useState<string>(localStorage.getItem("schemaName") || "kinova_gen3_6dof");
+  const [geojsonName, setGeojsonName] = useState<string>(localStorage.getItem("geojsonName") || "none");
   const [environment, setEnvironment] = useState<string>(localStorage.getItem("environment") || "Google Maps");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
@@ -52,12 +52,18 @@ export default function App() {
             localStorage.setItem("model", newModel);
             break;
           }
-          case "schemaName":
-            setSchemaName(value as string);
+          case "schemaName": {
+            const newSchemaName = value as string;
+            setSchemaName(newSchemaName);
+            localStorage.setItem("schemaName", newSchemaName);
             break;
-          case "geojsonName":
-            setGeojsonName(value as string);
+          }
+          case "geojsonName": {
+            const newGeojsonName = value as string;
+            setGeojsonName(newGeojsonName);
+            localStorage.setItem("geojsonName", newGeojsonName);
             break;
+          }
         }
       });
     }
