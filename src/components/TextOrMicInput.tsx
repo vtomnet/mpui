@@ -185,12 +185,12 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           variant={recording ? "destructive" : "ghost"}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 size-16 bg-none"
         >
-          {loading && loadingSource === "mic" ? (
+          {loading ? (
             <Spinner variant="secondary" size="lg" />
           ) : recording ? (
             <FontAwesomeIcon icon={faStop} size="2xl" />
           ) : hasText ? (
-            loading ? <Spinner variant="secondary" size="lg" /> : <FontAwesomeIcon icon={faArrowUp} size="2xl" />
+            <FontAwesomeIcon icon={faArrowUp} size="2xl" />
           ) : (
             <FontAwesomeIcon icon={faMicrophone} size="2xl" />
           )}
