@@ -13,12 +13,12 @@ export interface Environment {
     kinova?: boolean;
   };
   presets: {
-    realtimeHighlighting?: boolean;
-    showCachedPolygons?: boolean;
-    postXml?: boolean;
-    model?: string;
-    schemaName?: string;
-    geojsonName?: string;
+    realtimeHighlighting: boolean;
+    showCachedPolygons: boolean;
+    postXml: boolean;
+    model: string;
+    schemaName: string;
+    geojsonName: string;
   };
   urdf?: string;
   packages?: Record<string, string>;
@@ -58,6 +58,8 @@ export const environments: Environment[] = [
       geojsonFile: true,
     },
     presets: {
+      realtimeHighlighting: false,
+      showCachedPolygons: false,
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "clearpath_husky",
@@ -75,9 +77,12 @@ export const environments: Environment[] = [
       kinova: true,
     },
     presets: {
+      realtimeHighlighting: false,
+      showCachedPolygons: false,
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "kinova_gen3_6dof",
+      geojsonName: "none",
     },
     urdf: "/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf",
     packages: {
@@ -103,9 +108,12 @@ export const environments: Environment[] = [
       kinova: true,
     },
     presets: {
+      realtimeHighlighting: false,
+      showCachedPolygons: false,
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "bd_spot",
+      geojsonName: "none",
     },
     urdf: "/models/boston_dynamics_spot/spot_sim_description/urdf/spot.urdf",
     packages: {
