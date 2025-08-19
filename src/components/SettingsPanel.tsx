@@ -68,6 +68,24 @@ export default function SettingsPanel({
     if (storedDeviceHost) {
       setDeviceHost(storedDeviceHost);
     }
+
+    const storedPostXml = localStorage.getItem("postXml");
+    if (storedPostXml !== null) {
+      setPostXml(JSON.parse(storedPostXml));
+    }
+
+    const storedRealtimeHighlighting = localStorage.getItem(
+      "realtimeHighlighting"
+    );
+    if (storedRealtimeHighlighting !== null) {
+      setRealtimeHighlighting(JSON.parse(storedRealtimeHighlighting));
+    }
+
+    const storedShowCachedPolygons =
+      localStorage.getItem("showCachedPolygons");
+    if (storedShowCachedPolygons !== null) {
+      setShowCachedPolygons(JSON.parse(storedShowCachedPolygons));
+    }
   }, []);
 
   const sliderModelOptions = [
@@ -173,7 +191,10 @@ export default function SettingsPanel({
                 <Checkbox
                   id="post-xml-to-endpoint"
                   checked={postXml}
-                  onCheckedChange={setPostXml}
+                  onCheckedChange={(value) => {
+                    setPostXml(value);
+                    localStorage.setItem("postXml", JSON.stringify(value));
+                  }}
                 />
               </div>
             )}
@@ -259,7 +280,13 @@ export default function SettingsPanel({
                     <Checkbox
                       id="realtime-rendering"
                       checked={realtimeHighlighting}
-                      onCheckedChange={setRealtimeHighlighting}
+                      onCheckedChange={(value) => {
+                        setRealtimeHighlighting(value);
+                        localStorage.setItem(
+                          "realtimeHighlighting",
+                          JSON.stringify(value)
+                        );
+                      }}
                     />
                   </div>
                 )}
@@ -271,7 +298,13 @@ export default function SettingsPanel({
                     <Checkbox
                       id="show-cached-polygons"
                       checked={showCachedPolygons}
-                      onCheckedChange={setShowCachedPolygons}
+                      onCheckedChange={(value) => {
+                        setShowCachedPolygons(value);
+                        localStorage.setItem(
+                          "showCachedPolygons",
+                          JSON.stringify(value)
+                        );
+                      }}
                     />
                   </div>
                 )}
