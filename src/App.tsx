@@ -197,9 +197,11 @@ export default function App() {
         />
       )}
 
-      <EnvironmentDropdown environment={environment} setEnvironment={setEnvironment} />
-
-      <SettingsPanel
+      <div className="fixed top-4 left-4 right-4 z-10 flex items-center gap-4">
+        <div className="flex-grow">
+          <EnvironmentDropdown environment={environment} setEnvironment={setEnvironment} />
+        </div>
+        <SettingsPanel
         settings={selectedEnv?.settings}
         environment={environment}
         sessionName={sessionName}
@@ -222,6 +224,7 @@ export default function App() {
         jointValues={jointValues}
         onJointChange={onJointChange}
       />
+      </div>
 
       <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         <div className="w-full p-4 flex justify-end">

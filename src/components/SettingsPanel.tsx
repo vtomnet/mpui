@@ -89,7 +89,6 @@ export default function SettingsPanel({
     <Panel
       title="Settings"
       trigger={<FontAwesomeIcon icon={faGear} size="2xl" />}
-      triggerClassName="fixed top-4 right-4 z-10"
     >
       {() => (
         <>
