@@ -42,9 +42,9 @@ export const environments: Environment[] = [
       realtimeHighlighting: true,
       showCachedPolygons: false,
       postXml: false,
-      model: "gemini-2.5-flash",
+      model: "gpt-5-mini/high",
       schemaName: "gazebo_minimal",
-      geojsonName: "None",
+      geojsonName: "none",
     },
   },
   {
@@ -59,9 +59,9 @@ export const environments: Environment[] = [
     },
     presets: {
       postXml: false,
-      model: "gemini-2.5-flash",
-      schemaName: "gazebo_minimal",
-      geojsonName: "None",
+      model: "gpt-5-mini/high",
+      schemaName: "clearpath_husky",
+      geojsonName: "none",
     },
   },
   {
@@ -76,7 +76,7 @@ export const environments: Environment[] = [
     },
     presets: {
       postXml: false,
-      model: "gemini-2.5-flash",
+      model: "gpt-5-mini/high",
       schemaName: "kinova_gen3_6dof",
     },
     urdf: "/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf",
@@ -104,7 +104,7 @@ export const environments: Environment[] = [
     },
     presets: {
       postXml: false,
-      model: "gemini-2.5-flash",
+      model: "gpt-5-mini/high",
       schemaName: "bd_spot",
     },
     urdf: "/models/boston_dynamics_spot/spot_sim_description/urdf/spot.urdf",

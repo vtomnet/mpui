@@ -7,7 +7,6 @@ import fs from 'fs';
 import { fileTypeFromFile } from 'file-type';
 import { getResponse, modelList, schemaList, geojsonList } from '../lib/llm.js';
 import path from 'path';
-import util from 'util';
 import { createServer as createViteServer } from 'vite';
 
 async function createServer() {
@@ -44,16 +43,19 @@ async function createServer() {
     try {
       const { text, schemaName, geojsonName, model, lon, lat } = req.body;
       if (!model || !modelList.includes(model)) {
-        console.error(`Request error: Unrecognized or missing model: ${model}`);
-        return res.status(422).json({ error: "Unrecognized or missing model" });
+        const msg = `Unrecognized or missing model: ${model}`;
+        console.error(`Request error: ${msg}`);
+        return res.status(422).json({ error: msg });
       }
       if (!schemaName || !schemaList.includes(schemaName)) {
-        console.error(`Request error: Unrecognized or missing schema: ${schemaName}`);
-        return res.status(422).json({ error: "Unrecognized or missing schema" });
+        const msg = `Unrecognized or missing schema: ${schemaName}`;
+        console.error(`Request error: ${msg}`);
+        return res.status(422).json({ error: msg });
       }
-      if (!geojsonName || !geojsonList.includes(geojsonName)) {
-        console.error(`Request error: Unrecognized or missing geojson: ${geojsonName}`);
-        return res.status(422).json({ error: "Unrecognized or missing geojson" });
+      if (geojsonName && !geojsonList.includes(geojsonName)) {
+        const msg = `Unrecognized GeoJSON file: ${geojsonName}`;
+        console.error(`Request error: ${msg}`);
+        return res.status(422).json({ error: msg });
       }
 
       const response = await getResponse(text, schemaName, geojsonName, model);
@@ -140,7 +142,7 @@ async function createServer() {
 
         const transcript = await openai.audio.transcriptions.create({
           model: "gpt-4o-mini-transcribe",
-          prompt: "(farmer speaking)", // TODO
+          prompt: "The user is a farmer speaking instructions for an ag-tech robot.",
           file: fs.createReadStream(filepath),
         });
         console.log(`transcript: ${transcript.text}`);
