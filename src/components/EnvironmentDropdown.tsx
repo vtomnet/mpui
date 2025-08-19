@@ -23,7 +23,7 @@ import {
     });
 
     return (
-      <div className="fixed top-4 left-4 right-20 z-10">
+      <div className="fixed top-4 left-4 right-26 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="w-full font-normal h-18 text-lg glass" style={{ borderRadius: '24px' }}>
