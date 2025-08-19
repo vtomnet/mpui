@@ -9,6 +9,7 @@ import SettingsPanel from "@/components/SettingsPanel";
 import TextOrMicInput from "@/components/TextOrMicInput";
 import EnvironmentDropdown from "@/components/EnvironmentDropdown";
 import { environments } from "@/lib/environments";
+import Panel from "@/components/Panel";
 
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
@@ -26,6 +27,11 @@ export default function App() {
   const [robot, setRobot] = useState<URDFRobot | null>(null);
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
   const [sessionName, setSessionName] = useState<string>("");
+
+  // KLUDGE: For showing XML response in a popup
+  const [showXmlPopup, setShowXmlPopup] = useState(false);
+  const [xmlForPopup, setXmlForPopup] = useState("");
+  // END KLUDGE
 
   const mapRef = useRef<MapActions>(null);
 
@@ -96,6 +102,11 @@ export default function App() {
     console.log(xml);
     setTaskXml(xml);
     setFetchError(null);
+
+    // KLUDGE: Show XML in popup
+    setXmlForPopup(xml);
+    setShowXmlPopup(true);
+    // END KLUDGE
 
     if (selectedEnv?.name === "Kinova Kortex Gen3 6DOF" && robot) {
       const parser = new DOMParser();
@@ -272,6 +283,19 @@ export default function App() {
             initialCenter={initialCenter}
         />
       </div>
+
+      {/* KLUDGE for XML popup */}
+      <Panel
+        title="XML Response"
+        isOpen={showXmlPopup}
+        onClose={() => setShowXmlPopup(false)}
+      >
+        {() => (
+          <pre className="flex-1 overflow-auto text-sm bg-gray-100 p-2 rounded">
+            <code>{xmlForPopup}</code>
+          </pre>
+        )}
+      </Panel>
     </div>
   );
 }

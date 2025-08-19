@@ -5,24 +5,43 @@ import { Button } from "@/components/ui/button";
 
 interface Props {
   title: string;
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   children: (close: () => void) => React.ReactNode;
   triggerClassName?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function Panel({ title, trigger, children, triggerClassName }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Panel({ title, trigger, children, triggerClassName, isOpen: controlledIsOpen, onClose }: Props) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
 
-  const open = () => setIsOpen(true);
-  const close = () => setIsOpen(false);
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+
+  const open = () => {
+    if (!isControlled) {
+      setInternalIsOpen(true);
+    }
+  };
+
+  const close = () => {
+    if (onClose) {
+      onClose();
+    }
+    if (!isControlled) {
+      setInternalIsOpen(false);
+    }
+  };
 
   return (
     <>
-      <div className={triggerClassName}>
-        <Button onClick={open}>
-          {trigger}
-        </Button>
-      </div>
+      {trigger && (
+        <div className={triggerClassName}>
+          <Button onClick={open}>
+            {trigger}
+          </Button>
+        </div>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 z-20 flex items-center justify-center p-4">
