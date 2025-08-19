@@ -1,4 +1,4 @@
-import { useRef, useEffect, useImperativeHandle, forwardRef, PropsWithChildren } from "react";
+import { useEffect, useImperativeHandle, forwardRef, PropsWithChildren } from "react";
 import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
 
 export interface MapActions {
@@ -30,7 +30,6 @@ const InnerMap = forwardRef<MapActions, PropsWithChildren<{
             <Map
                 defaultCenter={{ lng: initialCenter[0], lat: initialCenter[1] }}
                 defaultZoom={14}
-                defaultTilt={0}
                 mapTypeId={'hybrid'}
                 className="w-full h-full"
                 gestureHandling={'greedy'}
@@ -41,6 +40,7 @@ const InnerMap = forwardRef<MapActions, PropsWithChildren<{
         </div>
     )
 });
+
 InnerMap.displayName = "InnerMap";
 
 const GoogleMapView = forwardRef<MapActions, PropsWithChildren<Props>>(({

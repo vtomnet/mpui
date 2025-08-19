@@ -10,6 +10,7 @@ import TextOrMicInput from "@/components/TextOrMicInput";
 import EnvironmentDropdown from "@/components/EnvironmentDropdown";
 import { environments } from "@/lib/environments";
 import Panel from "@/components/Panel";
+import { APIProvider } from "@vis.gl/react-google-maps";
 
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
@@ -34,6 +35,18 @@ export default function App() {
   // END KLUDGE
 
   const mapRef = useRef<MapActions>(null);
+  const appDivRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (appDivRef.current) {
+        appDivRef.current.style.height = `${window.innerHeight}px`;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSetEnvironment = (newEnvironment: string) => {
     setEnvironment(newEnvironment);
@@ -189,9 +202,10 @@ export default function App() {
   };
 
   const selectedEnv = environments.find((e) => e.name === environment);
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   return (
-    <div className="relative w-screen h-screen">
+    <div ref={appDivRef} className="relative w-screen">
       {environment === "Map (beta)" && (
         <MapView
           ref={mapRef}
@@ -249,9 +263,11 @@ export default function App() {
       />
       </div>
 
-      {(environment === "Map (beta)" || environment === "Google Maps") && (
+      {(environment === "Map (beta)" || environment === "Google Maps") && apiKey && (
         <div className="fixed bottom-28 right-4 z-30">
-          <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
+          <APIProvider apiKey={apiKey}>
+            <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
+          </APIProvider>
         </div>
       )}
 
