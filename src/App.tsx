@@ -17,7 +17,7 @@ export default function App() {
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
   const [model, setModel] = useState<string>("gpt-5/medium");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
-  const [geojsonName, setGeojsonName] = useState<string>("None");
+  const [geojsonName, setGeojsonName] = useState<string>("none");
   const [environment, setEnvironment] = useState<string>("Google Maps");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
