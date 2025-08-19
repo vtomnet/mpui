@@ -97,6 +97,10 @@ export default function App() {
     }
   }, [fetchError]);
 
+  useEffect(() => {
+    setInterimText("The quick brown fox jumps over the lazy dog. Foo bar baz fizz buzz fuzz bizz bozz fuzz.");
+  }, []);
+
   const onRobotLoad = useCallback((robot: URDFRobot, initialJoints: Record<string, number>) => {
     setRobot(robot);
     setJointValues(initialJoints);
@@ -271,9 +275,9 @@ export default function App() {
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none flex flex-col gap-2 p-4">
+      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none flex flex-col items-center gap-2 p-4">
         {fetchError && (
-          <div className="w-full">
+          <div className="w-full max-w-xl">
             <div className="bg-red-500/90 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
               <p className="text-lg">{fetchError}</p>
             </div>
@@ -281,21 +285,23 @@ export default function App() {
         )}
 
         {interimText && (
-          <div className="w-full">
-            <div className="bg-black/50 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
+          <div className="w-full max-w-[85%] mr-auto">
+            <div className="bg-black/50 backdrop-blur-md text-white p-4 rounded-xl shadow-lg inline-block max-w-xl">
               <p className="text-lg"><em>"{interimText}"</em></p>
             </div>
           </div>
         )}
-        <TextOrMicInput
-            onSttResult={setInterimText}
-            onFinalResult={handleFinalResult}
-            model={model}
-            schemaName={schemaName}
-            geojsonName={geojsonName}
-            setFetchError={setFetchError}
-            initialCenter={initialCenter}
-        />
+        <div className="w-full max-w-2xl">
+          <TextOrMicInput
+              onSttResult={setInterimText}
+              onFinalResult={handleFinalResult}
+              model={model}
+              schemaName={schemaName}
+              geojsonName={geojsonName}
+              setFetchError={setFetchError}
+              initialCenter={initialCenter}
+          />
+        </div>
       </div>
 
       {/* KLUDGE for XML popup */}
