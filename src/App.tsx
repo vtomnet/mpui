@@ -249,15 +249,13 @@ export default function App() {
       />
       </div>
 
-      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
-        <div className="w-full p-4 flex justify-end">
-          <div className="flex flex-col gap-4 pointer-events-auto">
-            {(environment === "Map (beta)" || environment === "Google Maps") && (
-              <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
-            )}
-          </div>
+      {(environment === "Map (beta)" || environment === "Google Maps") && (
+        <div className="fixed bottom-28 right-4 z-30">
+          <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
         </div>
+      )}
 
+      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
         {fetchError && (
           <div className="w-full px-4 pb-2">
             <div className="bg-red-500/90 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
