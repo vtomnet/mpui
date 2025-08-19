@@ -16,7 +16,7 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(false);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
-  const [model, setModel] = useState<string>(localStorage.getItem("model") || "gpt-5/medium");
+  const [model, setModel] = useState<string>(localStorage.getItem("model") || "gpt-5/low");
   const [schemaName, setSchemaName] = useState<string>(localStorage.getItem("schemaName") || "kinova_gen3_6dof");
   const [geojsonName, setGeojsonName] = useState<string>(localStorage.getItem("geojsonName") || "none");
   const [environment, setEnvironment] = useState<string>(localStorage.getItem("environment") || "Google Maps");
