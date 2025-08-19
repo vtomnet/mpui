@@ -64,7 +64,7 @@ export async function getResponse(
     const geojson = false; //geojsonName !== "none" ? await getFile(`/public/geojson/${geojsonName}.geojson`) : false;
     const systemPromptTmpl = await getFile("/resources/system_prompt.txt");
     console.log({ schema, geojson });
-    const systemPrompt = Mustache.render(systemPromptTmpl, { schema, /*geojson*/ });
+    const systemPrompt = Mustache.render(systemPromptTmpl, { schema, geojson });
     console.log("SYSTEM PROMPT:", systemPrompt);
 
     const content: OpenAI.Responses.ResponseInputItem.Message["content"] = [

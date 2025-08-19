@@ -25,7 +25,7 @@ import {
     return (
       <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full md:w-96 font-normal h-18 text-lg glass" style={{ borderRadius: '24px' }}>
+            <Button variant="outline" className="w-full md:w-72 font-normal h-18 text-lg glass" style={{ borderRadius: '24px' }}>
               {environment}
             </Button>
           </DropdownMenuTrigger>
