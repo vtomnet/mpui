@@ -80,16 +80,17 @@ export default function SettingsPanel({
   const sliderValue = modelValue === -1 ? 0 : modelValue;
   const currentModelDisplayName = sliderModelOptions.find(option => option.id === model)?.displayName || model;
   const schemaOptions = [
-    "bd_spot",
-    "clearpath_husky",
-    "kinova_gen3_6dof",
-    "gazebo_minimal"
+    { id: "bd_spot", displayName: "Boston Dynamics Spot" },
+    { id: "clearpath_husky", displayName: "Clearpath Husky" },
+    { id: "kinova_gen3_6dof", displayName: "Kinova Gen3 6DOF" },
+    { id: "gazebo_minimal", displayName: "Gazebo Minimal" }
   ];
+  const currentSchemaDisplayName = schemaOptions.find(option => option.id === schemaName)?.displayName || schemaName;
   const geojsonOptions = [
-    { value: "none", label: "none" },
-    { value: "reza", label: "reza" },
-    { value: "test", label: "test" },
-    { value: "ucm_graph40", label: "ucm_graph40" },
+    { id: "none", displayName: "None" },
+    { id: "reza", displayName: "Reza" },
+    { id: "test", displayName: "Test" },
+    { id: "ucm_graph40", displayName: "UCM Graph 40" },
   ];
 
   return (
@@ -128,7 +129,7 @@ export default function SettingsPanel({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="size-10 w-[200px] font-normal">
-                      {schemaName}
+                      {currentSchemaDisplayName}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-[200px]">
@@ -140,8 +141,8 @@ export default function SettingsPanel({
                       }}
                     >
                       {schemaOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {option}
+                        <DropdownMenuRadioItem key={option.id} value={option.id}>
+                          {option.displayName}
                         </DropdownMenuRadioItem>
                       ))}
                     </DropdownMenuRadioGroup>
@@ -280,7 +281,7 @@ export default function SettingsPanel({
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" className="size-10 w-[200px] font-normal">
-                          {geojsonOptions.find((o) => o.value === geojsonName)?.label}
+                          {geojsonOptions.find((o) => o.id === geojsonName)?.displayName}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
@@ -293,10 +294,10 @@ export default function SettingsPanel({
                         >
                           {geojsonOptions.map((option) => (
                             <DropdownMenuRadioItem
-                              key={option.value}
-                              value={option.value}
+                              key={option.id}
+                              value={option.id}
                             >
-                              {option.label}
+                              {option.displayName}
                             </DropdownMenuRadioItem>
                           ))}
                         </DropdownMenuRadioGroup>
