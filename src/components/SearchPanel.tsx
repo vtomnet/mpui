@@ -12,6 +12,10 @@ interface Props {
 export default function SearchPanel({ onPanTo }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
+  const [searchHistory, setSearchHistory] = useState<NominatimResult[]>(() => {
+    const saved = localStorage.getItem("searchHistory");
+    return saved ? JSON.parse(saved) : [];
+  });
   const searchDebounceTimer = useRef<number | null>(null);
 
   const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +42,12 @@ export default function SearchPanel({ onPanTo }: Props) {
 
   const handleResultClick = (r: NominatimResult, close: () => void) => {
     onPanTo([parseFloat(r.lon), parseFloat(r.lat)]);
+    const newHistory = [
+      r,
+      ...searchHistory.filter((item) => item.place_id !== r.place_id),
+    ];
+    setSearchHistory(newHistory);
+    localStorage.setItem("searchHistory", JSON.stringify(newHistory));
     setSearchQuery("");
     setSearchResults([]);
     close();
@@ -60,7 +70,7 @@ export default function SearchPanel({ onPanTo }: Props) {
           />
 
           <div className="flex-1 overflow-y-auto">
-            {searchResults.map((r) => (
+            {(searchQuery.trim() ? searchResults : searchHistory).map((r) => (
               <div
                 key={r.place_id}
                 onClick={() => handleResultClick(r, close)}
