@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import type { URDFRobot, URDFJoint } from "urdf-loader";
@@ -62,6 +63,13 @@ export default function SettingsPanel({
   jointValues,
   onJointChange,
 }: Props) {
+  useEffect(() => {
+    const storedDeviceHost = localStorage.getItem("deviceHost");
+    if (storedDeviceHost) {
+      setDeviceHost(storedDeviceHost);
+    }
+  }, []);
+
   const sliderModelOptions = [
     { id: "gpt-5-mini/low", displayName: "GPT-5 mini (low)" },
     { id: "gpt-5-mini/high", displayName: "GPT-5 mini (high)" },
@@ -169,7 +177,10 @@ export default function SettingsPanel({
                   id="endpoint-url"
                   type="text"
                   value={deviceHost}
-                  onChange={(e) => setDeviceHost(e.target.value)}
+                  onChange={(e) => {
+                    setDeviceHost(e.target.value);
+                    localStorage.setItem("deviceHost", e.target.value);
+                  }}
                   className="w-[200px]"
                 />
               </div>
