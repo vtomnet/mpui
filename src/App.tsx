@@ -220,7 +220,7 @@ export default function App() {
         />
       )}
 
-      <div className="fixed top-4 left-4 right-4 z-10 flex items-center gap-4">
+      <div className="fixed top-4 left-4 right-4 z-20 flex items-center gap-4">
         <div className="flex-grow">
           <EnvironmentDropdown environment={environment} setEnvironment={handleSetEnvironment} />
         </div>
