@@ -63,10 +63,15 @@ export default function SettingsPanel({
   jointValues,
   onJointChange,
 }: Props) {
+  const sanitizeDeviceHost = (value: string) => {
+    if (!value) return "";
+    return value.trim().replace(/^https?:\/\//, "").split("/")[0];
+  };
+
   useEffect(() => {
     const storedDeviceHost = localStorage.getItem("deviceHost");
     if (storedDeviceHost) {
-      setDeviceHost(storedDeviceHost);
+      setDeviceHost(sanitizeDeviceHost(storedDeviceHost));
     }
 
     const storedPostXml = localStorage.getItem("postXml");
@@ -208,8 +213,9 @@ export default function SettingsPanel({
                   type="text"
                   value={deviceHost}
                   onChange={(e) => {
-                    setDeviceHost(e.target.value);
-                    localStorage.setItem("deviceHost", e.target.value);
+                    const sanitized = sanitizeDeviceHost(e.target.value);
+                    setDeviceHost(sanitized);
+                    localStorage.setItem("deviceHost", sanitized);
                   }}
                   className="w-[200px]"
                 />
