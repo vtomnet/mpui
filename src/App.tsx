@@ -255,9 +255,9 @@ export default function App() {
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none">
+      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none flex flex-col gap-2 p-4">
         {fetchError && (
-          <div className="w-full px-4 pb-2">
+          <div className="w-full">
             <div className="bg-red-500/90 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
               <p className="text-lg">{fetchError}</p>
             </div>
@@ -265,13 +265,13 @@ export default function App() {
         )}
 
         {interimText && (
-            <div className="w-full px-4 pb-2">
-                <div className="bg-black/50 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
-                    <p className="text-lg"><em>"{interimText}"</em></p>
-                </div>
+          <div className="w-full">
+            <div className="bg-black/50 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
+              <p className="text-lg"><em>"{interimText}"</em></p>
             </div>
+          </div>
         )}
-         <TextOrMicInput
+        <TextOrMicInput
             onSttResult={setInterimText}
             onFinalResult={handleFinalResult}
             model={model}

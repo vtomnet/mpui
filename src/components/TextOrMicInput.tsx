@@ -165,7 +165,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
   const hasText = text.trim() !== "";
 
   return (
-    <div className="pt-0 pl-6 pr-4 pb-4 w-full flex items-center gap-3 pointer-events-auto">
+    <div className="w-full flex items-center gap-3 pointer-events-auto">
       <form onSubmit={handleTextSubmit} className="relative flex-1 flex items-center gap-3">
         <Input
           type="text"
