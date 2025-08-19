@@ -30,11 +30,12 @@ const InnerMap = forwardRef<MapActions, PropsWithChildren<{
             <Map
                 defaultCenter={{ lng: initialCenter[0], lat: initialCenter[1] }}
                 defaultZoom={14}
-                defaultTilt={45}
+                defaultTilt={0}
                 mapTypeId={'hybrid'}
                 className="w-full h-full"
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}
+                renderingType='VECTOR'
             />
             {children}
         </div>
