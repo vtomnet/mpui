@@ -15,10 +15,10 @@ export default function App() {
   const [showCachedPolygons, setShowCachedPolygons] = useState<boolean>(false);
   const [postXml, setPostXml] = useState<boolean>(false);
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
-  const [model, setModel] = useState<string>("gpt-5/medium");
+  const [model, setModel] = useState<string>(localStorage.getItem("model") || "gpt-5/medium");
   const [schemaName, setSchemaName] = useState<string>("kinova_gen3_6dof");
   const [geojsonName, setGeojsonName] = useState<string>("none");
-  const [environment, setEnvironment] = useState<string>("Google Maps");
+  const [environment, setEnvironment] = useState<string>(localStorage.getItem("environment") || "Google Maps");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -28,8 +28,14 @@ export default function App() {
   const [sessionName, setSessionName] = useState<string>("");
 
   const mapRef = useRef<MapActions>(null);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const selectedEnv = environments.find((e) => e.name === environment);
     if (selectedEnv) {
       Object.entries(selectedEnv.presets).forEach(([key, value]) => {

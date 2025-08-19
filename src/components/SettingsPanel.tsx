@@ -68,10 +68,6 @@ export default function SettingsPanel({
     if (storedDeviceHost) {
       setDeviceHost(storedDeviceHost);
     }
-    const storedModel = localStorage.getItem("model");
-    if (storedModel) {
-      setModel(storedModel);
-    }
   }, []);
 
   const sliderModelOptions = [

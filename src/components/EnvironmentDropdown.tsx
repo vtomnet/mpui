@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,13 +14,6 @@ import {
   }
 
   export default function EnvironmentDropdown({ environment, setEnvironment }: Props) {
-    useEffect(() => {
-      const storedEnvironment = localStorage.getItem("environment");
-      if (storedEnvironment) {
-        setEnvironment(storedEnvironment);
-      }
-    }, []);
-
     const sortedEnvironments = [...environments].sort((a, b) => {
       const aIsGoogle = a.name.includes("Google Maps");
       const bIsGoogle = b.name.includes("Google Maps");
