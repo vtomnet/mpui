@@ -173,7 +173,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           autoComplete="off"
           value={text}
           onChange={handleTextChange}
-          placeholder="Type or speak a mission plan"
+          placeholder="Enter a mission plan"
           className="text-base h-20 flex-1 placeholder:text-gray-50 pr-12 glass"
           style={{ fontSize: "18px" }}
           disabled={loading}
