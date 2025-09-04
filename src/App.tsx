@@ -264,7 +264,7 @@ export default function App() {
       </div>
 
       {(environment === "Map (beta)" || environment === "Google Maps") && apiKey && (
-        <div className="fixed bottom-28 right-4 z-30">
+        <div className="fixed bottom-26 md:bottom-4 right-4 z-30">
           <APIProvider apiKey={apiKey}>
             <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
           </APIProvider>
@@ -287,7 +287,7 @@ export default function App() {
             </div>
           </div>
         )}
-        <div className="w-full max-w-2xl">
+        <div className="w-full md:max-w-[70%]">
           <TextOrMicInput
               onSttResult={setInterimText}
               onFinalResult={handleFinalResult}

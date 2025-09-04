@@ -174,7 +174,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           value={text}
           onChange={handleTextChange}
           placeholder="Enter a mission plan"
-          className="text-base h-20 flex-1 placeholder:text-gray-50 pr-12 glass"
+          className="text-base h-18 flex-1 placeholder:text-gray-50 pr-12 glass"
           style={{ fontSize: "18px" }}
           disabled={loading}
         />
@@ -183,7 +183,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           onClick={!hasText ? handleMicClick : undefined}
           disabled={loading}
           variant={recording ? "destructive" : "ghost"}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 size-16 bg-none"
+          className="absolute right-0 top-1/2 transform -translate-y-1/2 size-18 bg-none"
         >
           {loading ? (
             <Spinner variant="secondary" size="lg" />
