@@ -5,8 +5,12 @@
   "main": "index.html",
   "scripts": {
     "build": "vite build",
-    "dev": "tsx watch server/index.ts",
-    "start": "NODE_ENV=production tsx server/index.ts"
+    "dev": "concurrently \"npm run dev:server\" \"vite\"",
+    "dev:server": "cd ../gpt-mission-planner && python3 app/run_server.py",
+    "dev:legacy": "tsx watch server/index.ts",
+    "start": "NODE_ENV=production concurrently \"npm run start:server\" \"vite build && vite preview\"",
+    "start:server": "cd ../gpt-mission-planner && python3 app/run_server.py",
+    "start:legacy": "NODE_ENV=production tsx server/index.ts"
   },
   "license": "MIT",
   "author": "Thomas Morford",

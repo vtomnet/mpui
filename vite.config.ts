@@ -18,5 +18,12 @@ export default defineConfig({
       '.ngrok-free.app',
       '.vtom.net',
     ],
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:9001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });
