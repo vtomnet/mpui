@@ -5,6 +5,8 @@ import { Spinner } from "@/components/Spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp, faMicrophone, faStop } from "@fortawesome/free-solid-svg-icons";
 
+const API_HOST = `${window.location.protocol}//${window.location.hostname}:9001`;
+
 interface Props {
   onSttResult: (stt: string) => void;
   onFinalResult: (xml: string) => void;
@@ -56,7 +58,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           }
 
           try {
-            const res = await fetch("/api/voice", {
+            const res = await fetch(API_HOST + "/api/voice", {
               method: "POST",
               body: formData,
             });
@@ -137,7 +139,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
     };
 
     try {
-      const res = await fetch("/api/text", {
+      const res = await fetch(API_HOST + "/api/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
