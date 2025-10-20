@@ -233,7 +233,7 @@ export default function App() {
         />
       )}
 
-      <div className="fixed top-4 right-4 z-20">
+      <div className="fixed top-4 left-4 z-20">
         <SettingsPanel
         settings={selectedEnv?.settings}
         environment={environment}
@@ -261,7 +261,7 @@ export default function App() {
       </div>
 
       {(environment === "Map (beta)" || environment === "Google Maps") && apiKey && (
-        <div className="fixed bottom-76 md:bottom-54 right-4 z-30">
+        <div className="fixed top-4 right-4 z-30">
           <APIProvider apiKey={apiKey}>
             <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
           </APIProvider>
