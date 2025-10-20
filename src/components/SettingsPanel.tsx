@@ -14,11 +14,12 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Environment } from "@/lib/environments";
+import { Environment, environments } from "@/lib/environments";
 
 interface Props {
   settings: Environment['settings'] | undefined;
   environment: string;
+  setEnvironment: (value: string) => void;
   sessionName: string;
   setSessionName: (value: string) => void;
   realtimeHighlighting: boolean;
@@ -43,6 +44,7 @@ interface Props {
 export default function SettingsPanel({
   settings,
   environment,
+  setEnvironment,
   sessionName,
   setSessionName,
   realtimeHighlighting,
@@ -116,6 +118,15 @@ export default function SettingsPanel({
     { id: "ucm_graph40", displayName: "UCM Graph 40" },
   ];
 
+  // Environment dropdown logic
+  const sortedEnvironments = [...environments].sort((a, b) => {
+    const aIsGoogle = a.name.includes("Google Maps");
+    const bIsGoogle = b.name.includes("Google Maps");
+    if (aIsGoogle && !bIsGoogle) return -1;
+    if (!aIsGoogle && bIsGoogle) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <Panel
       title="Settings"
@@ -124,6 +135,29 @@ export default function SettingsPanel({
       {() => (
         <>
           <div className="flex-1 overflow-y-auto">
+            {/* Environment Selection */}
+            <div className="flex items-center justify-between p-2">
+              <label className="text-sm font-medium">Environment</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-[200px] font-normal">
+                    {environment}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuRadioGroup
+                    value={environment}
+                    onValueChange={setEnvironment}
+                  >
+                    {sortedEnvironments.map((env) => (
+                      <DropdownMenuRadioItem key={env.name} value={env.name}>
+                        {env.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             {settings?.model && (
               <div className="flex items-start justify-between p-2">
                 <label className="text-sm font-medium">Model</label>
@@ -197,8 +231,8 @@ export default function SettingsPanel({
                   id="post-xml-to-endpoint"
                   checked={postXml}
                   onCheckedChange={(value) => {
-                    setPostXml(value);
-                    localStorage.setItem("postXml", JSON.stringify(value));
+                    setPostXml(!!value);
+                    localStorage.setItem("postXml", JSON.stringify(!!value));
                   }}
                 />
               </div>
@@ -287,10 +321,10 @@ export default function SettingsPanel({
                       id="realtime-rendering"
                       checked={realtimeHighlighting}
                       onCheckedChange={(value) => {
-                        setRealtimeHighlighting(value);
+                        setRealtimeHighlighting(!!value);
                         localStorage.setItem(
                           "realtimeHighlighting",
-                          JSON.stringify(value)
+                          JSON.stringify(!!value)
                         );
                       }}
                     />
@@ -305,10 +339,10 @@ export default function SettingsPanel({
                       id="show-cached-polygons"
                       checked={showCachedPolygons}
                       onCheckedChange={(value) => {
-                        setShowCachedPolygons(value);
+                        setShowCachedPolygons(!!value);
                         localStorage.setItem(
                           "showCachedPolygons",
-                          JSON.stringify(value)
+                          JSON.stringify(!!value)
                         );
                       }}
                     />

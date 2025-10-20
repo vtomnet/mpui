@@ -7,7 +7,6 @@ import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import TextOrMicInput from "@/components/TextOrMicInput";
-import EnvironmentDropdown from "@/components/EnvironmentDropdown";
 import { environments } from "@/lib/environments";
 import Panel from "@/components/Panel";
 import { APIProvider } from "@vis.gl/react-google-maps";
@@ -234,13 +233,11 @@ export default function App() {
         />
       )}
 
-      <div className="fixed top-4 left-4 right-4 z-20 flex items-center gap-4">
-        <div className="flex-grow">
-          <EnvironmentDropdown environment={environment} setEnvironment={handleSetEnvironment} />
-        </div>
+      <div className="fixed top-4 right-4 z-20">
         <SettingsPanel
         settings={selectedEnv?.settings}
         environment={environment}
+        setEnvironment={handleSetEnvironment}
         sessionName={sessionName}
         setSessionName={setSessionName}
         realtimeHighlighting={realtimeHighlighting}
