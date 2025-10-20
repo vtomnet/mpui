@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 8001,
     allowedHosts: [
       '.ngrok-free.app',
       '.vtom.net',

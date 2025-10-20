@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /*@tailwind base;*/
 /*@tailwind components;*/
@@ -18,8 +19,6 @@
 
   --animate-spinner: spinner 1s linear infinite;
 }
-
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
