@@ -11,6 +11,8 @@ const buttonVariants = cva(
       variant: {
         default:
           "rounded-full glass focus-visible:ring-0 focus-visible:border-input backdrop-blur-sm border-none text-primary-foreground shadow-xl",
+        noglass:
+          "rounded-full focus-visible:ring-0 focus-visible:border-input backdrop-blur-sm border-none text-primary-foreground shadow-xl",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:

@@ -264,14 +264,14 @@ export default function App() {
       </div>
 
       {(environment === "Map (beta)" || environment === "Google Maps") && apiKey && (
-        <div className="fixed bottom-26 md:bottom-4 right-4 z-30">
+        <div className="fixed bottom-76 md:bottom-54 right-4 z-30">
           <APIProvider apiKey={apiKey}>
             <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
           </APIProvider>
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 w-screen z-10 pointer-events-none flex flex-col items-center gap-2 p-4">
+      <div className="fixed bottom-50 left-0 w-screen z-10 pointer-events-none flex flex-col items-center gap-2 p-4">
         {fetchError && (
           <div className="w-full max-w-xl">
             <div className="bg-red-500/90 backdrop-blur-md text-white p-4 rounded-xl shadow-lg">
