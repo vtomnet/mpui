@@ -115,7 +115,7 @@ export default function SettingsPanel({
   const geojsonOptions = [
     { id: "none", displayName: "None" },
     { id: "reza", displayName: "Reza" },
-    { id: "test", displayName: "Test" },
+    { id: "greece", displayName: "Greece" },
     { id: "ucm_graph40", displayName: "UCM Graph 40" },
   ];
 
