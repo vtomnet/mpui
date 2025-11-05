@@ -75,18 +75,21 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
           const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           const formData = new FormData();
           formData.append("file", audioBlob, "recording.webm");
-          formData.append("schemaName", schemaName);
-          formData.append("model", model);
-          if (geojsonName) {
-            formData.append("geojsonName", geojsonName);
-          }
-          if (initialCenter) {
-            formData.append("lon", String(initialCenter[0]));
-            formData.append("lat", String(initialCenter[1]));
-          }
+
+          const requestData = {
+            text: null,
+            schema: schemaName,
+            model: model,
+            ...(geojsonName && { geojsonName }),
+            ...(initialCenter && {
+              lon: initialCenter[0],
+              lat: initialCenter[1]
+            })
+          };
+          formData.append("request", JSON.stringify(requestData));
 
           try {
-            const res = await fetch("/api/voice", {
+            const res = await fetch("/api/generate", {
               method: "POST",
               body: formData,
             });
@@ -159,29 +162,55 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
     setLoadingSource("text");
     setText("");
 
-    const payload = {
+    const requestData = {
       text: theText,
-      schemaName: schemaName,
-      geojsonName: geojsonName || undefined,
-      model,
-      lon: initialCenter?.[0],
-      lat: initialCenter?.[1],
+      schema: schemaName,
+      model: model,
+      ...(geojsonName && { geojsonName }),
+      ...(initialCenter && {
+        lon: initialCenter[0],
+        lat: initialCenter[1]
+      })
     };
 
+    const formData = new FormData();
+    formData.append("request", JSON.stringify(requestData));
+
     try {
-      const res = await fetch("/api/text", {
+      const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
-      const data = await res.json();
+      if (!res.body) throw new Error("Response body is null");
 
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP error! status: ${res.status}`);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.trim() === "") continue;
+          try {
+            const data = JSON.parse(line);
+            if (data.stt) onSttResult(data.stt);
+            if (data.result) onFinalResult(data.result);
+            if (data.error) {
+              console.error("Server-side error:", data.error);
+              setFetchError(data.error);
+            }
+          } catch (e) {
+            console.error("Failed to parse JSON from stream:", e);
+          }
+        }
       }
-
-      onFinalResult(data.result);
     } catch (error: any) {
       console.error(`Error submitting text: ${error}`);
       setFetchError(error.message || "An error occurred. Please try again.");
