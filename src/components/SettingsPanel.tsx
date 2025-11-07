@@ -108,13 +108,14 @@ export default function SettingsPanel({
     { id: "bd_spot", displayName: "Boston Dynamics Spot" },
     { id: "clearpath_husky", displayName: "Clearpath Husky" },
     { id: "kinova_gen3_6dof", displayName: "Kinova Gen3 6DOF" },
-    { id: "gazebo_minimal", displayName: "Gazebo Minimal" }
+    { id: "amiga_btcpp", displayName: "Bonsai Amiga (BT.CPP)"},
+    // { id: "gazebo_minimal", displayName: "Gazebo Minimal" }
   ];
   const currentSchemaDisplayName = schemaOptions.find(option => option.id === schemaName)?.displayName || schemaName;
   const geojsonOptions = [
     { id: "none", displayName: "None" },
     { id: "reza", displayName: "Reza" },
-    { id: "test", displayName: "Test" },
+    { id: "greece", displayName: "Greece" },
     { id: "ucm_graph40", displayName: "UCM Graph 40" },
   ];
 

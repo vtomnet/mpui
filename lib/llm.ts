@@ -38,8 +38,8 @@ export const schemaList = [
 
 export const geojsonList = [
   "reza",
+  "greece",
   "ucm_graph40",
-  "test",
   "none",
 ]
 

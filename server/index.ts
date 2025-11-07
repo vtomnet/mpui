@@ -4,7 +4,8 @@ import path from 'path';
 
 function createServer() {
   const app = express();
-  const PORT = process.env.PORT || 8001;
+  const PORT = process.env.PORT || 8002;
+  const API_PROXY_PORT = process.env.API_PROXY_PORT || 8003;
 
   // Logging middleware
   app.use((req, res, next) => {
@@ -21,6 +22,12 @@ function createServer() {
     next();
   });
 
+  // Proxy /api/ requests to the backend API server
+  app.use('/api', createProxyMiddleware({
+    target: `http://localhost:${API_PROXY_PORT}`,
+    changeOrigin: true,
+  }));
+
   // Serve static files from dist directory
   app.use(express.static(path.join(process.cwd(), 'dist')));
 
@@ -31,6 +38,7 @@ function createServer() {
 
   app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT}`);
+    console.log(`Proxying /api requests to http://localhost:${API_PROXY_PORT}`);
   });
 }
 
