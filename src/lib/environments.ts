@@ -9,7 +9,7 @@ export interface Environment {
     deviceHost: boolean;
     realtimeHighlighting?: boolean;
     showCachedPolygons?: boolean;
-    geojsonFile?: boolean;
+    contextFiles?: boolean;
     kinova?: boolean;
   };
   presets: {
@@ -18,7 +18,7 @@ export interface Environment {
     postXml: boolean;
     model: string;
     schemaName: string;
-    geojsonName: string;
+    contextFiles: string[];
   };
   urdf?: string;
   packages?: Record<string, string>;
@@ -36,7 +36,7 @@ export const environments: Environment[] = [
       deviceHost: true,
       realtimeHighlighting: true,
       showCachedPolygons: true,
-      geojsonFile: true,
+      contextFiles: true,
     },
     presets: {
       realtimeHighlighting: true,
@@ -44,7 +44,7 @@ export const environments: Environment[] = [
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "gazebo_minimal",
-      geojsonName: "none",
+      contextFiles: [],
     },
   },
   {
@@ -55,7 +55,7 @@ export const environments: Environment[] = [
       deviceSchema: true,
       sendToDevice: true,
       deviceHost: true,
-      geojsonFile: true,
+      contextFiles: true,
     },
     presets: {
       realtimeHighlighting: false,
@@ -63,7 +63,7 @@ export const environments: Environment[] = [
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "clearpath_husky",
-      geojsonName: "none",
+      contextFiles: [],
     },
   },
   {
@@ -82,7 +82,7 @@ export const environments: Environment[] = [
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "kinova_gen3_6dof",
-      geojsonName: "none",
+      contextFiles: [],
     },
     urdf: "/models/kinova_kortex_gen3_6dof/kortex_description/arms/gen3/6dof/urdf/GEN3-6DOF_VISION_URDF_ARM_V01.urdf",
     packages: {
@@ -113,7 +113,7 @@ export const environments: Environment[] = [
       postXml: false,
       model: "gpt-5-mini/high",
       schemaName: "bd_spot",
-      geojsonName: "none",
+      contextFiles: [],
     },
     urdf: "/models/boston_dynamics_spot/spot_sim_description/urdf/spot.urdf",
     packages: {

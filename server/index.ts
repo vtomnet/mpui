@@ -26,6 +26,9 @@ function createServer() {
   app.use('/api', createProxyMiddleware({
     target: `http://localhost:${API_PROXY_PORT}`,
     changeOrigin: true,
+    pathRewrite: {
+      '^/api': '', // Remove /api prefix
+    },
   }));
 
   // Serve static files from dist directory

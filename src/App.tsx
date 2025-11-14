@@ -2,14 +2,25 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import type { URDFRobot } from "urdf-loader";
 import MapView, { MapActions } from "@/components/environments/map/MapView";
 import GoogleMapView from "@/components/environments/google-map/GoogleMapView";
+import GoogleMapPathPlan from "@/components/environments/google-map/GoogleMapPathPlan";
 import KinovaKortexGen3View from "@/components/environments/kinova-kortex-gen3-6dof/KinovaKortexGen3View";
 import PathPlan from "@/components/PathPlan";
 import SearchPanel from "@/components/SearchPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import TextOrMicInput from "@/components/TextOrMicInput";
 import { environments } from "@/lib/environments";
-import Panel from "@/components/Panel";
+import XmlResponsePanel from "@/components/XmlResponsePanel";
 import { APIProvider } from "@vis.gl/react-google-maps";
+
+const DEMO_XML_RESPONSE = `<root BTCPP_format="4" schema_location="schemas/schemas/amiga_btcpp.xsd">
+    <Mission>Drive the robot forward 5m and then left 4m</Mission>
+    <BehaviorTree ID="main">
+        <Sequence>
+            <MoveToRelativeLocation name="DriveForward_5m" action_name="navigate_to_pose_in_frame" x="5" y="0" />
+            <MoveToRelativeLocation name="MoveLeft_4m" action_name="navigate_to_pose_in_frame" x="0" y="4" />
+        </Sequence>
+    </BehaviorTree>
+</root>`;
 
 export default function App() {
   const [realtimeHighlighting, setRealtimeHighlighting] = useState<boolean>(true);
@@ -18,7 +29,9 @@ export default function App() {
   const [deviceHost, setDeviceHost] = useState<string>(location.host);
   const [model, setModel] = useState<string>(localStorage.getItem("model") || "gpt-5/low");
   const [schemaName, setSchemaName] = useState<string>(localStorage.getItem("schemaName") || "amiga_btcpp");
-  const [geojsonName, setGeojsonName] = useState<string>(localStorage.getItem("geojsonName") || "reza");
+  const [contextFiles, setContextFiles] = useState<string[]>(
+    JSON.parse(localStorage.getItem("contextFiles") || "[]")
+  );
   const [environment, setEnvironment] = useState<string>(localStorage.getItem("environment") || "Map (beta)");
   const [taskXml, setTaskXml] = useState<string>("");
   const [interimText, setInterimText] = useState<string>("");
@@ -27,11 +40,8 @@ export default function App() {
   const [robot, setRobot] = useState<URDFRobot | null>(null);
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
   const [sessionName, setSessionName] = useState<string>("");
-
-  // KLUDGE: For showing XML response in a popup
   const [showXmlPopup, setShowXmlPopup] = useState(false);
   const [xmlForPopup, setXmlForPopup] = useState("");
-  // END KLUDGE
 
   const mapRef = useRef<MapActions>(null);
   const appDivRef = useRef<HTMLDivElement>(null);
@@ -76,10 +86,10 @@ export default function App() {
             localStorage.setItem("schemaName", newSchemaName);
             break;
           }
-          case "geojsonName": {
-            const newGeojsonName = value as string;
-            setGeojsonName(newGeojsonName);
-            localStorage.setItem("geojsonName", newGeojsonName);
+          case "contextFiles": {
+            const newContextFiles = value as string[];
+            setContextFiles(newContextFiles);
+            localStorage.setItem("contextFiles", JSON.stringify(newContextFiles));
             break;
           }
         }
@@ -114,11 +124,8 @@ export default function App() {
     console.log(xml);
     setTaskXml(xml);
     setFetchError(null);
-
-    // KLUDGE: Show XML in popup
     setXmlForPopup(xml);
     setShowXmlPopup(true);
-    // END KLUDGE
 
     if (selectedEnv?.name === "Kinova Kortex Gen3 6DOF" && robot) {
       const parser = new DOMParser();
@@ -200,12 +207,18 @@ export default function App() {
     }
   };
 
+  const handleLoadDemoXml = () => {
+    void handleFinalResult(DEMO_XML_RESPONSE);
+  };
+
   const selectedEnv = environments.find((e) => e.name === environment);
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const isMapLibreEnv = environment === "Map (beta)";
+  const isGoogleMapsEnv = environment === "Google Maps";
 
   return (
     <div ref={appDivRef} className="relative w-screen">
-      {environment === "Map (beta)" && (
+      {isMapLibreEnv && (
         <MapView
           ref={mapRef}
           setInitialCenter={setInitialCenter}
@@ -213,15 +226,32 @@ export default function App() {
           realtimeHighlighting={realtimeHighlighting}
           showCachedPolygons={showCachedPolygons}
         >
-          <PathPlan xml={taskXml}/>
+          <PathPlan xml={taskXml} origin={initialCenter}/>
         </MapView>
       )}
-      {environment === "Google Maps" && (
-        <GoogleMapView
-          ref={mapRef}
-          setInitialCenter={setInitialCenter}
-          initialCenter={initialCenter}
-        />
+      {isGoogleMapsEnv && (
+        apiKey ? (
+          <APIProvider apiKey={apiKey} libraries={["places"]}>
+            <GoogleMapView
+              ref={mapRef}
+              setInitialCenter={setInitialCenter}
+              initialCenter={initialCenter}
+            >
+              <GoogleMapPathPlan xml={taskXml} origin={initialCenter} />
+            </GoogleMapView>
+            <div className="fixed top-4 right-4 z-30">
+              <SearchPanel onPanTo={(coords) => mapRef.current?.panTo(coords)} />
+            </div>
+          </APIProvider>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-200">
+            <p className="p-4 text-center text-red-500">
+              Google Maps API key is missing.
+              <br />
+              Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.
+            </p>
+          </div>
+        )
       )}
       {selectedEnv?.urdf && selectedEnv.packages && (
         <KinovaKortexGen3View
@@ -238,6 +268,7 @@ export default function App() {
         settings={selectedEnv?.settings}
         environment={environment}
         setEnvironment={handleSetEnvironment}
+        onLoadDemoXml={handleLoadDemoXml}
         sessionName={sessionName}
         setSessionName={setSessionName}
         realtimeHighlighting={realtimeHighlighting}
@@ -252,18 +283,18 @@ export default function App() {
         setModel={setModel}
         schemaName={schemaName}
         setSchemaName={setSchemaName}
-        geojsonName={geojsonName}
-        setGeojsonName={setGeojsonName}
+        contextFiles={contextFiles}
+        setContextFiles={setContextFiles}
         robot={robot}
         jointValues={jointValues}
         onJointChange={onJointChange}
       />
       </div>
 
-      {(environment === "Map (beta)" || environment === "Google Maps") && apiKey && (
+      {isMapLibreEnv && apiKey && (
         <div className="fixed top-4 right-4 z-30">
-          <APIProvider apiKey={apiKey}>
-            <SearchPanel onPanTo={coords => mapRef.current?.panTo(coords)}/>
+          <APIProvider apiKey={apiKey} libraries={["places"]}>
+            <SearchPanel onPanTo={(coords) => mapRef.current?.panTo(coords)}/>
           </APIProvider>
         </div>
       )}
@@ -290,25 +321,18 @@ export default function App() {
               onFinalResult={handleFinalResult}
               model={model}
               schemaName={schemaName}
-              geojsonName={geojsonName}
+              contextFiles={contextFiles}
               setFetchError={setFetchError}
               initialCenter={initialCenter}
           />
         </div>
       </div>
 
-      {/* KLUDGE for XML popup */}
-      <Panel
-        title="XML Response"
+      <XmlResponsePanel
+        xml={xmlForPopup}
         isOpen={showXmlPopup}
         onClose={() => setShowXmlPopup(false)}
-      >
-        {() => (
-          <pre className="flex-1 overflow-auto text-sm bg-gray-100 p-2 rounded">
-            <code>{xmlForPopup}</code>
-          </pre>
-        )}
-      </Panel>
+      />
     </div>
   );
 }

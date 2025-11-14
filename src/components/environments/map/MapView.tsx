@@ -7,6 +7,8 @@ export interface MapActions {
   panTo: (lonLat: [number, number]) => void;
 }
 
+export const DEFAULT_MAP_ZOOM = 18;
+
 interface Props {
   initialCenter: [number, number] | null;
   setInitialCenter: (center: [number, number]) => void;
@@ -155,6 +157,7 @@ const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
         attributionControl: false,
         style: {
           version: 8,
+          glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
           sources: {
             satellite: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles © Esri' },
             labels: { type: 'raster', tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles © Esri' },
@@ -170,11 +173,60 @@ const MapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
             { id: 'farmland-outline', type: 'line', source: 'farmland', paint: { 'line-color': ['case', ['boolean', ['feature-state', 'highlighted'], false], 'rgba(255,255,0,0.7)', 'rgba(0,0,0,0)'], 'line-width': 3 } },
             // Layers for the plan path
             { id: 'graph-lines', type: 'line', source: 'graph', filter: ['==', '$type', 'LineString'], paint: { 'line-width': 3, 'line-color': '#33ff33', 'line-dasharray': [2, 2] } },
-            { id: 'graph-points', type: 'circle', source: 'graph', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 6, 'circle-color': '#33ff33', 'circle-stroke-color': 'black', 'circle-stroke-width': 1 } }
+            {
+              id: 'graph-points',
+              type: 'circle',
+              source: 'graph',
+              filter: ['==', '$type', 'Point'],
+              paint: {
+                'circle-radius': [
+                  'case',
+                  ['==', ['get', 'type'], 'start'],
+                  22,
+                  ['==', ['get', 'type'], 'orientation'],
+                  16,
+                  20
+                ],
+                'circle-color': [
+                  'case',
+                  ['==', ['get', 'type'], 'start'],
+                  '#ffffff',
+                  ['==', ['get', 'type'], 'orientation'],
+                  '#3385ff',
+                  '#33ff33'
+                ],
+                'circle-stroke-color': '#000000',
+                'circle-stroke-width': [
+                  'case',
+                  ['==', ['get', 'type'], 'start'],
+                  4,
+                  2.4
+                ]
+              }
+            },
+            {
+              id: 'graph-labels',
+              type: 'symbol',
+              source: 'graph',
+              filter: ['==', '$type', 'Point'],
+              layout: {
+                'text-field': ['get', 'label'],
+                'text-size': 14,
+                'text-font': ['Open Sans Semibold'],
+                'text-offset': [0, 1.2],
+                'text-anchor': 'top',
+                'text-allow-overlap': false
+              },
+              paint: {
+                'text-color': '#ffffff',
+                'text-halo-color': 'rgba(0,0,0,0.75)',
+                'text-halo-width': 1.5
+              }
+            }
           ],
         },
         center: initialCenter,
-        zoom: 18,
+        zoom: DEFAULT_MAP_ZOOM,
       });
       mapRef.current = map;
 

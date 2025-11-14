@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import type { URDFRobot, URDFJoint } from "urdf-loader";
@@ -15,11 +15,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Environment, environments } from "@/lib/environments";
+import { fetchContextFiles } from "@/lib/api";
 
 interface Props {
   settings: Environment['settings'] | undefined;
   environment: string;
   setEnvironment: (value: string) => void;
+  onLoadDemoXml: () => void;
   sessionName: string;
   setSessionName: (value: string) => void;
   realtimeHighlighting: boolean;
@@ -34,8 +36,8 @@ interface Props {
   setModel: (value: string) => void;
   schemaName: string;
   setSchemaName: (value: string) => void;
-  geojsonName: string;
-  setGeojsonName: (value: string) => void;
+  contextFiles: string[];
+  setContextFiles: (value: string[]) => void;
   robot: URDFRobot | null;
   jointValues: Record<string, number>;
   onJointChange: (jointName: string, value: number) => void;
@@ -59,12 +61,15 @@ export default function SettingsPanel({
   setModel,
   schemaName,
   setSchemaName,
-  geojsonName,
-  setGeojsonName,
+  contextFiles,
+  setContextFiles,
   robot,
   jointValues,
   onJointChange,
+  onLoadDemoXml,
 }: Props) {
+  const [availableContextFiles, setAvailableContextFiles] = useState<string[]>([]);
+
   const sanitizeDeviceHost = (value: string) => {
     if (!value) return "";
     return value.trim().replace(/^https?:\/\//, "").split("/")[0];
@@ -93,6 +98,9 @@ export default function SettingsPanel({
     if (storedShowCachedPolygons !== null) {
       setShowCachedPolygons(JSON.parse(storedShowCachedPolygons));
     }
+
+    // Fetch available context files
+    fetchContextFiles().then(setAvailableContextFiles);
   }, []);
 
   const sliderModelOptions = [
@@ -112,12 +120,6 @@ export default function SettingsPanel({
     // { id: "gazebo_minimal", displayName: "Gazebo Minimal" }
   ];
   const currentSchemaDisplayName = schemaOptions.find(option => option.id === schemaName)?.displayName || schemaName;
-  const geojsonOptions = [
-    { id: "none", displayName: "None" },
-    { id: "reza", displayName: "Reza" },
-    { id: "greece", displayName: "Greece" },
-    { id: "ucm_graph40", displayName: "UCM Graph 40" },
-  ];
 
   // Environment dropdown logic
   const sortedEnvironments = [...environments].sort((a, b) => {
@@ -133,7 +135,7 @@ export default function SettingsPanel({
       title="Settings"
       trigger={<FontAwesomeIcon icon={faGear} size="2xl" />}
     >
-      {() => (
+      {(close) => (
         <>
           <div className="flex-1 overflow-y-auto">
             {/* Environment Selection */}
@@ -311,7 +313,7 @@ export default function SettingsPanel({
                 </ul>
               </div>
             )}
-            {(settings?.realtimeHighlighting || settings?.showCachedPolygons || settings?.geojsonFile) && (
+            {(settings?.realtimeHighlighting || settings?.showCachedPolygons || settings?.contextFiles) && (
               <div className="border-t border-border my-4 py-4 px-2 space-y-4">
                 {settings?.realtimeHighlighting && (
                   <div className="flex items-center justify-between p-2">
@@ -349,38 +351,52 @@ export default function SettingsPanel({
                     />
                   </div>
                 )}
-                {settings?.geojsonFile && (
-                  <div className="flex items-center justify-between p-2">
-                    <label className="text-sm font-medium">GeoJSON File</label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="size-10 w-[200px] font-normal">
-                          {geojsonOptions.find((o) => o.id === geojsonName)?.displayName}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuRadioGroup
-                          value={geojsonName}
-                          onValueChange={(value) => {
-                            setGeojsonName(value);
-                            localStorage.setItem("geojsonName", value);
-                          }}
-                        >
-                          {geojsonOptions.map((option) => (
-                            <DropdownMenuRadioItem
-                              key={option.id}
-                              value={option.id}
-                            >
-                              {option.displayName}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                {settings?.contextFiles && (
+                  <div className="p-2">
+                    <label className="text-sm font-medium block mb-2">Context Files</label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {availableContextFiles.map((fileName) => (
+                        <div key={fileName} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`context-${fileName}`}
+                            checked={contextFiles.includes(fileName)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                const newFiles = [...contextFiles, fileName];
+                                setContextFiles(newFiles);
+                                localStorage.setItem("contextFiles", JSON.stringify(newFiles));
+                              } else {
+                                const newFiles = contextFiles.filter(f => f !== fileName);
+                                setContextFiles(newFiles);
+                                localStorage.setItem("contextFiles", JSON.stringify(newFiles));
+                              }
+                            }}
+                          />
+                          <label htmlFor={`context-${fileName}`} className="text-sm cursor-pointer">
+                            {fileName}
+                          </label>
+                        </div>
+                      ))}
+                      {availableContextFiles.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No context files available</p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
             )}
+          </div>
+
+          <div className="p-2">
+            <Button
+              className="w-full"
+              onClick={() => {
+                onLoadDemoXml();
+                close();
+              }}
+            >
+              Load demo XML
+            </Button>
           </div>
 
           <div className="mt-auto pt-4 text-center text-xs text-muted-foreground">
