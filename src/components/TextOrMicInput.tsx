@@ -10,13 +10,13 @@ interface Props {
   onFinalResult: (xml: string) => void;
   model: string;
   schemaName: string;
-  geojsonName: string;
+  contextFiles: string[];
   setFetchError: (error: string | null) => void;
   initialCenter: [number, number] | null;
   onHeightChange?: (height: number) => void;
 }
 
-export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, geojsonName, setFetchError, initialCenter, onHeightChange }: Props) {
+export default function TextOrMicInput({ onSttResult, onFinalResult, model, schemaName, contextFiles, setFetchError, initialCenter, onHeightChange }: Props) {
   const [mode, setMode] = useState<"buttons" | "typing" | "recording">("buttons");
   const [recording, setRecording] = useState<boolean>(false);
   const [loadingSource, setLoadingSource] = useState<"text" | "mic" | null>(null);
@@ -80,7 +80,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
             text: null,
             schema: schemaName,
             model: model,
-            ...(geojsonName && { geojsonName }),
+            ...(contextFiles.length > 0 && { contextFiles }),
             ...(initialCenter && {
               lon: initialCenter[0],
               lat: initialCenter[1]
@@ -166,7 +166,7 @@ export default function TextOrMicInput({ onSttResult, onFinalResult, model, sche
       text: theText,
       schema: schemaName,
       model: model,
-      ...(geojsonName && { geojsonName }),
+      ...(contextFiles.length > 0 && { contextFiles }),
       ...(initialCenter && {
         lon: initialCenter[0],
         lat: initialCenter[1]

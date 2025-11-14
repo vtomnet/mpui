@@ -1,47 +1,28 @@
 import { useEffect, useImperativeHandle, forwardRef, PropsWithChildren } from "react";
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
-
-export interface MapActions {
-  panTo: (lonLat: [number, number]) => void;
-}
+import { Map, useMap } from "@vis.gl/react-google-maps";
+import type { MapActions } from "../map/MapView";
 
 interface Props {
   initialCenter: [number, number] | null;
   setInitialCenter: (center: [number, number]) => void;
 }
 
-// Inner component to get map instance
-const InnerMap = forwardRef<MapActions, PropsWithChildren<{
-    initialCenter: [number, number],
-}>>(({ children, initialCenter }, ref) => {
-    const map = useMap();
+const MapController = forwardRef<MapActions, PropsWithChildren>(({
+  children,
+}, ref) => {
+  const map = useMap();
 
-    useImperativeHandle(ref, () => ({
-        panTo(lonLat: [number, number]) {
-            if (map) {
-                map.panTo({ lng: lonLat[0], lat: lonLat[1] });
-                map.setZoom(17);
-            }
-        },
-    }));
+  useImperativeHandle(ref, () => ({
+    panTo(lonLat: [number, number]) {
+      if (!map) return;
+      map.panTo({ lng: lonLat[0], lat: lonLat[1] });
+      map.setZoom(17);
+    },
+  }), [map]);
 
-    return (
-        <div className="relative w-full h-full">
-            <Map
-                defaultCenter={{ lng: initialCenter[0], lat: initialCenter[1] }}
-                defaultZoom={14}
-                mapTypeId={'hybrid'}
-                className="w-full h-full"
-                gestureHandling={'greedy'}
-                disableDefaultUI={true}
-                renderingType='VECTOR'
-            />
-            {children}
-        </div>
-    )
+  return <>{children}</>;
 });
-
-InnerMap.displayName = "InnerMap";
+MapController.displayName = "MapController";
 
 const GoogleMapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
   children,
@@ -59,26 +40,28 @@ const GoogleMapView = forwardRef<MapActions, PropsWithChildren<Props>>(({
     );
   }, [setInitialCenter, initialCenter]);
 
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-  if (!apiKey) {
+  if (!initialCenter) {
     return (
-        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-            <p className="text-red-500 p-4 text-center">Google Maps API key is missing.<br/>Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.</p>
-        </div>
+      <div className="w-full h-full flex items-center justify-center">
+        Getting location...
+      </div>
     );
   }
 
-  if (!initialCenter) {
-      return <div className="w-full h-full flex items-center justify-center">Getting location...</div>;
-  }
-
   return (
-    <APIProvider apiKey={apiKey}>
-      <InnerMap ref={ref} initialCenter={initialCenter}>
-        {children}
-      </InnerMap>
-    </APIProvider>
+    <div className="relative w-full h-full">
+      <Map
+        defaultCenter={{ lng: initialCenter[0], lat: initialCenter[1] }}
+        defaultZoom={14}
+        mapTypeId="hybrid"
+        className="w-full h-full"
+        gestureHandling="greedy"
+        disableDefaultUI
+        renderingType="VECTOR"
+      >
+        <MapController ref={ref}>{children}</MapController>
+      </Map>
+    </div>
   );
 });
 GoogleMapView.displayName = "GoogleMapView";
